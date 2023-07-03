@@ -1,0 +1,26 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Application",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Cardiomegaly/main.py"
+        },
+        {
+            "name": "Python: Test",
+            "type": "python",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "${workspaceFolder}/Tests/test_example.py"
+            ]
+        },
+        {
+            "name": "Python: Data Downloader",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/Scripts/download_data.py"
+        }
+    ]
+}

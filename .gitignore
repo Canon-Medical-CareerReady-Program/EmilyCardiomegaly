@@ -1,0 +1,22 @@
+syntax: glob
+
+# Environment
+environment/
+
+# Python/IDE
+**/__pycache__
+.idea/**
+.ipynb_checkpoints
+*/**.pyc
+*.log
+
+# Test Files
+.metrics
+.coverage
+
+# Binary files
+*.npy
+*.nrrd
+
+# Data
+Data/Cache
