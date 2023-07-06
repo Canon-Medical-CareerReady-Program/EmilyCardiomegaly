@@ -1,4 +1,4 @@
-from Cardiomegaly.point import Point
+from point import Point
 import math
 
 

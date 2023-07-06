@@ -1,7 +1,16 @@
-from Cardiomegaly.measurement import Measurement
+from measurement import Measurement
 
 class Result:
     heart = Measurement("Heart")
     thorax = Measurement("Thorax")
-    def __init__(self, image_name) -> None:
-        self.image_name = image_name
+    image_name = ""
+    def __init__(self) -> None:
+        pass
+
+    def ratio(self):
+        ratio = self.heart.length() / self.thorax.length()
+        return ratio
+    
+    def percentage(self):
+        percentage = round(self.ratio()*100, 2)
+        return percentage

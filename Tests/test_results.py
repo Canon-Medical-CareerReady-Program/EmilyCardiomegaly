@@ -8,7 +8,9 @@ from Cardiomegaly.results import Result
 # You can run all tests using a script in Scripts folder or right click here in PyCharm and run with pytest
 
 def test_variables():
-    a = Result("00000_1")
+    a = Result()
+    assert a.image_name == ""
+    a.image_name = "00000_1"
     assert a.image_name == "00000_1"
     assert a.heart.body_part == "Heart"
     assert a.thorax.body_part == "Thorax"
