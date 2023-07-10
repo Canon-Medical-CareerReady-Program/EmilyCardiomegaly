@@ -27,11 +27,6 @@ class DrawingApp:
 
         self.create_menu()
 
-        self.line_length_del = 0.0
-        self.heart_line_length = 0.0
-        self.thorax_line_length = 0.0
-        self.current_variable_del = None
-
         self.ratio = 0.0
 
         self.current_result = Result()
@@ -69,7 +64,6 @@ class DrawingApp:
             self.canvas.config(width=self.image.width, height=self.image.height)
             self.canvas.create_image(0, 0, anchor="nw", image=self.image_tk)
             self.clear_measurements()  # Clear the stored measurements
-            self.draw_saved_lines()  # Draw the saved lines
 
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y)
@@ -84,30 +78,19 @@ class DrawingApp:
         y1 = self.current_measurement.end.y
 
         # Draw the straight line
-        line_color = "purple" if self.current_variable_del == "Heart Line" else "blue"
-        self.canvas.delete("line")  # Delete previous line
-        self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags="line")
-
-    def draw_saved_lines(self):
-        for line_data in self.drawn_lines:
-            x0, y0, color = line_data
-            self.canvas.create_line(x0, y0, fill=color, width=2, tags="line")
+        line_color = "purple" if self.current_measurement == self.current_result.heart else "blue"
+        self.canvas.delete(self.current_measurement.body_part)  # Delete previous line
+        self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=self.current_measurement.body_part)
 
     def select_variable(self, variable):
         if variable == "Heart Line":
             self.current_measurement = self.current_result.heart
         else:
             self.current_measurement = self.current_result.thorax
-        self.current_variable_del = variable
 
     def save_line(self):
-        line_color = "purple" if self.current_variable_del == "Heart Line" else "blue"
-        self.drawn_lines.append((self.current_measurement.end.x, self.current_measurement.end.y, line_color))
         heart_line_label.config(text="Heart Line Length: {:}".format(self.current_result.heart.length()))
         thorax_line_label.config(text="Lung Line Length: {:}".format(self.current_result.thorax.length()))
-
-        # Reset the line length after saving
-        self.line_length_del = 0.0
 
         # Recalculate ratio and percentage
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
@@ -123,10 +106,10 @@ class DrawingApp:
             ratio_label.config(text="This patient's Cardiothoracic Ratio is not above 0.5, indicating a normal heart size.")
 
     def clear_canvas(self):
-        self.canvas.delete("line")  # Delete all items on the canvas
+        self.canvas.delete(self.current_result.heart.body_part) 
+        self.canvas.delete(self.current_result.thorax.body_part) # Delete all items on the canvas
         self.drawn_lines = []  # Clear the stored lines
         self.clear_measurements()  # Clear the stored measurements
-        self.current_variable_del = None
 
         # Reset the labels
         heart_line_label.config(text="Heart Line Length: 0.0 ")

@@ -13,10 +13,7 @@ class Measurement:
         distance = math.sqrt((self.end.x - self.start.x) ** 2 + (self.end.y - self.start.y) ** 2)
         return distance 
     
-    def save(self):
-        pass
-    
     def clear(self):
         self.start = Point(0.0, 0.0)
         self.end = Point(0.0, 0.0)
-        
+

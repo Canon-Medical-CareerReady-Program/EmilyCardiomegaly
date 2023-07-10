@@ -1,4 +1,5 @@
 from measurement import Measurement
+from tkinter import filedialog
 
 class Result:
     heart = Measurement("Heart")
@@ -14,3 +15,6 @@ class Result:
     def percentage(self):
         percentage = round(self.ratio()*100, 2)
         return percentage
+    
+    def save(self):
+        pass
