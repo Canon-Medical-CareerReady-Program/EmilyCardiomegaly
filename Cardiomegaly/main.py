@@ -17,7 +17,7 @@ class DrawingApp:
         self.canvas.bind("<Button-1>", self.start_drawing)
         self.canvas.bind("<B1-Motion>", self.draw)
 
-        self.image_paths = []  # List to store the paths of opened images
+        self.image_paths_del = []  # List to store the paths of opened images
         self.current_image_index = -1  # Index of the currently displayed image
 
         self.image = None
@@ -29,8 +29,10 @@ class DrawingApp:
 
         self.ratio = 0.0
 
-        self.current_result = Result()
+        self.current_result = None
         self.current_measurement = None
+
+        self.all_results = []
 
     def create_menu(self):
         menubar = tk.Menu(self.root, background="light blue", foreground="black")
@@ -51,13 +53,18 @@ class DrawingApp:
     def open_image(self):
         file_paths = filedialog.askopenfilenames(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
         if file_paths:
-            self.image_paths = list(file_paths)  # Store the selected image paths
+            self.image_paths_del = list(file_paths)  # Store the selected image paths
             self.current_image_index = 0  # Set the current image index to the first image
+            for file_path in file_paths:
+                result = Result()
+                result.image_name = file_path
+                self.all_results.append(result)
             self.load_current_image()  # Load the current image
 
+
     def load_current_image(self):
-        if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths):
-            self.current_result.image_name = self.image_paths[self.current_image_index]
+        if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths_del):
+            self.current_result = self.all_results[self.current_image_index]
             self.image = Image.open(self.current_result.image_name)
             self.image_tk = ImageTk.PhotoImage(self.image)
             self.modified_image = self.image.copy()  # Create a copy for modifications
@@ -121,7 +128,7 @@ class DrawingApp:
         self.current_measurement.clear()
 
     def next_image(self):
-        if self.current_image_index < len(self.image_paths) - 1:
+        if self.current_image_index < len(self.image_paths_del) - 1:
             self.current_image_index += 1
             self.clear_measurements()  # Clear measurements when switching image
             self.load_current_image()
