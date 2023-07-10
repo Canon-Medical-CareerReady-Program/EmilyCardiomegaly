@@ -135,9 +135,7 @@ class DrawingApp:
         percentage_label.config(text="Percentage of Ratio:")
 
     def clear_measurements(self):
-        self.line_length_del = 0.0
-        self.heart_line_length = 0.0
-        self.thorax_line_length = 0.0
+        self.current_measurement.clear()
 
     def next_image(self):
         if self.current_image_index < len(self.image_paths) - 1:
