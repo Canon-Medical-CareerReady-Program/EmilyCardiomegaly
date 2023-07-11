@@ -13,7 +13,7 @@
             "request": "launch",
             "module": "pytest",
             "args": [
-                "${workspaceFolder}/Tests/test_example.py"
+                "${workspaceFolder}/Tests/"
             ]
         },
         {
