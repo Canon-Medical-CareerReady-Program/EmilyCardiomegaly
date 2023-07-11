@@ -39,14 +39,9 @@ class DrawingApp:
         file_menu = tk.Menu(menubar, tearoff=0, background="light blue", foreground="black")
         file_menu.add_command(label="Open", command=self.open_image, background="light blue", foreground="black")
         menubar.add_cascade(label="File", menu=file_menu, background="light blue", foreground="black")
-
-        menubar.add_cascade(label="Save Line", command=self.save_line, background="light blue", foreground="black")
         menubar.add_cascade(label="Clear", command=self.clear_canvas, background="light blue", foreground="black")
-
-        variable_menu = tk.Menu(menubar, tearoff=0, background="light blue", foreground="black")
-        variable_menu.add_command(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black")
-        variable_menu.add_command(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
-        menubar.add_cascade(label="Select Variable", menu=variable_menu, background="light blue", foreground="black")
+        menubar.add_cascade(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black")
+        menubar.add_cascade(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
 
         self.root.config(menu=menubar)
 
@@ -79,6 +74,10 @@ class DrawingApp:
         
         self.update_body_part(self.current_measurement)
 
+        # Recalculate ratio and percentage
+        if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
+            self.calculate_ratio_and_percentage()
+
 
     def select_variable(self, variable):
         if variable == "Heart Line":
@@ -86,22 +85,8 @@ class DrawingApp:
         else:
             self.current_measurement = self.current_result.thorax
 
-    def save_line(self):
-        heart_line_label.config(text="Heart Line Length: {:}".format(self.current_result.heart.length()))
-        thorax_line_label.config(text="Thorax Line Length: {:}".format(self.current_result.thorax.length()))
-
-        # Recalculate ratio and percentage
-        if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
-            self.calculate_ratio_and_percentage()
-
     def calculate_ratio_and_percentage(self):
-        ratio_label.config(text="Cardiothoracic Ratio: {:} (Heart: {:}, Thorax: {:})".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
-        percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
-
-        if self.current_result.ratio() > 0.5:
-            ratio_label.config(text="This patient's Cardiothoracic Ratio is above 0.5, indicating an enlarged heart.")
-        else:
-            ratio_label.config(text="This patient's Cardiothoracic Ratio is not above 0.5, indicating a normal heart size.")
+        self.update_results()
 
     def clear_canvas(self):
         self.canvas.delete(self.current_result.heart.body_part) 
@@ -120,14 +105,12 @@ class DrawingApp:
 
     def next_image(self):
         if self.current_image_index < len(self.image_paths_del) - 1:
-            # self.clear_canvas()
             self.current_image_index += 1
             self.load_current_image()
             self.update_results()
 
     def previous_image(self):
         if self.current_image_index > 0:
-            # self.clear_canvas()
             self.current_image_index -= 1
             self.load_current_image()
             self.update_results()
@@ -137,6 +120,13 @@ class DrawingApp:
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
 
+        ratio_label.config(text="Cardiothoracic Ratio: {:} (Heart: {:}, Thorax: {:})".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
+        percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
+
+        if self.current_result.ratio() > 0.5:
+            ratio_label.config(text="This patient's Cardiothoracic Ratio is above 0.5, indicating an enlarged heart.")
+        else:
+            ratio_label.config(text="This patient's Cardiothoracic Ratio is not above 0.5, indicating a normal heart size.")
 
 
 
@@ -152,7 +142,8 @@ class DrawingApp:
         self.canvas.delete(measurement.body_part)  # Delete previous line
         self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=measurement.body_part)
 
-        
+        heart_line_label.config(text="Heart Line Length: {:}".format(self.current_result.heart.length()))
+        thorax_line_label.config(text="Thorax Line Length: {:}".format(self.current_result.thorax.length()))
 
 
 
