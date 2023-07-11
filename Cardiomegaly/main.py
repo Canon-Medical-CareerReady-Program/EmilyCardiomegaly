@@ -45,7 +45,7 @@ class DrawingApp:
 
         variable_menu = tk.Menu(menubar, tearoff=0, background="light blue", foreground="black")
         variable_menu.add_command(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black")
-        variable_menu.add_command(label="Lung Line", command=lambda: self.select_variable("Lung Line"), background="light blue", foreground="black")
+        variable_menu.add_command(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
         menubar.add_cascade(label="Select Variable", menu=variable_menu, background="light blue", foreground="black")
 
         self.root.config(menu=menubar)
@@ -67,10 +67,8 @@ class DrawingApp:
             self.current_result = self.all_results[self.current_image_index]
             self.image = Image.open(self.current_result.image_name)
             self.image_tk = ImageTk.PhotoImage(self.image)
-            self.modified_image = self.image.copy()  # Create a copy for modifications
             self.canvas.config(width=self.image.width, height=self.image.height)
             self.canvas.create_image(0, 0, anchor="nw", image=self.image_tk)
-            self.clear_measurements()  # Clear the stored measurements
 
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y)
@@ -79,15 +77,8 @@ class DrawingApp:
         # Calculate the coordinates for a straight line
         self.current_measurement.end = Point(event.x, event.y)
         
-        x0 = self.current_measurement.start.x
-        y0 = self.current_measurement.start.y
-        x1 = self.current_measurement.end.x
-        y1 = self.current_measurement.end.y
+        self.update_body_part(self.current_measurement)
 
-        # Draw the straight line
-        line_color = "purple" if self.current_measurement == self.current_result.heart else "blue"
-        self.canvas.delete(self.current_measurement.body_part)  # Delete previous line
-        self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=self.current_measurement.body_part)
 
     def select_variable(self, variable):
         if variable == "Heart Line":
@@ -97,14 +88,14 @@ class DrawingApp:
 
     def save_line(self):
         heart_line_label.config(text="Heart Line Length: {:}".format(self.current_result.heart.length()))
-        thorax_line_label.config(text="Lung Line Length: {:}".format(self.current_result.thorax.length()))
+        thorax_line_label.config(text="Thorax Line Length: {:}".format(self.current_result.thorax.length()))
 
         # Recalculate ratio and percentage
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.calculate_ratio_and_percentage()
 
     def calculate_ratio_and_percentage(self):
-        ratio_label.config(text="Cardiothoracic Ratio: {:} (Heart: {:}, Lung: {:})".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
+        ratio_label.config(text="Cardiothoracic Ratio: {:} (Heart: {:}, Thorax: {:})".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
         percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
 
         if self.current_result.ratio() > 0.5:
@@ -120,7 +111,7 @@ class DrawingApp:
 
         # Reset the labels
         heart_line_label.config(text="Heart Line Length: 0.0 ")
-        thorax_line_label.config(text="Lung Line Length: 0.0 ")
+        thorax_line_label.config(text="Thorax Line Length: 0.0 ")
         ratio_label.config(text="Cardiothoracic Ratio:")
         percentage_label.config(text="Percentage of Ratio:")
 
@@ -129,15 +120,41 @@ class DrawingApp:
 
     def next_image(self):
         if self.current_image_index < len(self.image_paths_del) - 1:
+            # self.clear_canvas()
             self.current_image_index += 1
-            self.clear_measurements()  # Clear measurements when switching image
             self.load_current_image()
+            self.update_results()
 
     def previous_image(self):
         if self.current_image_index > 0:
+            # self.clear_canvas()
             self.current_image_index -= 1
-            self.clear_measurements()  # Clear measurements when switching image
             self.load_current_image()
+            self.update_results()
+
+    def update_results(self):
+
+        self.update_body_part(self.current_result.heart)
+        self.update_body_part(self.current_result.thorax)
+
+
+
+
+    def update_body_part(self, measurement):
+
+        x0 = measurement.start.x
+        y0 = measurement.start.y
+        x1 = measurement.end.x
+        y1 = measurement.end.y
+
+        # Draw the straight line
+        line_color = "purple" if measurement == self.current_result.heart else "blue"
+        self.canvas.delete(measurement.body_part)  # Delete previous line
+        self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=measurement.body_part)
+
+        
+
+
 
 
 if __name__ == "__main__":
@@ -151,7 +168,7 @@ if __name__ == "__main__":
     heart_line_label = tk.Label(frame, text="Heart Line Length: 0.0")
     heart_line_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
-    thorax_line_label = tk.Label(frame, text="Lung Line Length: 0.0")
+    thorax_line_label = tk.Label(frame, text="Thorax Line Length: 0.0")
     thorax_line_label.grid(row=1, column=0, sticky="w", padx=10, pady=5)
 
     ratio_label = tk.Label(frame, text="Cardiothoracic Ratio:")

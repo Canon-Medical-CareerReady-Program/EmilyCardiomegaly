@@ -2,11 +2,11 @@ from measurement import Measurement
 from tkinter import filedialog
 
 class Result:
-    heart = Measurement("Heart")
-    thorax = Measurement("Thorax")
-    image_name = ""
+
     def __init__(self) -> None:
-        pass
+        self.heart = Measurement("Heart")
+        self.thorax = Measurement("Thorax")
+        self.image_name = ""        
 
     def ratio(self):
         ratio = self.heart.length() / self.thorax.length()
