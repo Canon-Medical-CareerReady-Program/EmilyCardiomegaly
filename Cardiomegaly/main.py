@@ -36,9 +36,7 @@ class DrawingApp:
 
     def create_menu(self):
         menubar = tk.Menu(self.root, background="light blue", foreground="black")
-        file_menu = tk.Menu(menubar, tearoff=0, background="light blue", foreground="black")
-        file_menu.add_command(label="Open", command=self.open_image, background="light blue", foreground="black")
-        menubar.add_cascade(label="File", menu=file_menu, background="light blue", foreground="black")
+        menubar.add_cascade(label="Open", command=self.open_image, background="light blue", foreground="black")
         menubar.add_cascade(label="Clear", command=self.clear_canvas, background="light blue", foreground="black")
         menubar.add_cascade(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black")
         menubar.add_cascade(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
@@ -60,6 +58,7 @@ class DrawingApp:
     def load_current_image(self):
         if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths_del):
             self.current_result = self.all_results[self.current_image_index]
+            self.current_measurement = self.current_result.heart
             self.image = Image.open(self.current_result.image_name)
             self.image_tk = ImageTk.PhotoImage(self.image)
             self.canvas.config(width=self.image.width, height=self.image.height)
@@ -84,6 +83,7 @@ class DrawingApp:
             self.current_measurement = self.current_result.heart
         else:
             self.current_measurement = self.current_result.thorax
+       
 
     def calculate_ratio_and_percentage(self):
         self.update_results()
@@ -99,6 +99,7 @@ class DrawingApp:
         thorax_line_label.config(text="Thorax Line Length: 0.0 ")
         ratio_label.config(text="Cardiothoracic Ratio:")
         percentage_label.config(text="Percentage of Ratio:")
+        Diagnosis_label.config(text="Diagnosis:")
 
     def clear_measurements(self):
         self.current_measurement.clear()
@@ -115,18 +116,25 @@ class DrawingApp:
             self.load_current_image()
             self.update_results()
 
+
     def update_results(self):
 
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
 
-        ratio_label.config(text="Cardiothoracic Ratio: {:} (Heart: {:}, Thorax: {:})".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
-        percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
+        if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
+            ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
+            percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
 
-        if self.current_result.ratio() > 0.5:
-            ratio_label.config(text="This patient's Cardiothoracic Ratio is above 0.5, indicating an enlarged heart.")
+            if self.current_result.ratio() > 0.5:
+                Diagnosis_label.config(text="Ratio is > 0.5, indicating an enlarged heart.")
+            else:
+                Diagnosis_label.config(text="Ratio is not > 0.5, indicating a normal heart size.")
+
         else:
-            ratio_label.config(text="This patient's Cardiothoracic Ratio is not above 0.5, indicating a normal heart size.")
+            ratio_label.config(text="Cardiothoracic Ratio:")
+            percentage_label.config(text="Percentage of Ratio:")
+            Diagnosis_label.config(text="Diagnosis:")
 
 
 
@@ -142,8 +150,8 @@ class DrawingApp:
         self.canvas.delete(measurement.body_part)  # Delete previous line
         self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=measurement.body_part)
 
-        heart_line_label.config(text="Heart Line Length: {:}".format(self.current_result.heart.length()))
-        thorax_line_label.config(text="Thorax Line Length: {:}".format(self.current_result.thorax.length()))
+        heart_line_label.config(text="Heart Line Length: {:.2f}".format(self.current_result.heart.length()))
+        thorax_line_label.config(text="Thorax Line Length: {:.2f}".format(self.current_result.thorax.length()))
 
 
 
@@ -152,27 +160,39 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = DrawingApp(root)
 
+    root.option_add("*Menu.background", "blue")
+    root.option_add("*Menu.foreground", "white")
+
     # Create a frame to hold the labels and buttons
     frame = tk.Frame(root)
     frame.grid(row=0, column=0, padx=10, pady=10, sticky="nw")
 
-    heart_line_label = tk.Label(frame, text="Heart Line Length: 0.0")
+    # Create a separate frame for labels and data with a set width
+    label_frame = tk.Frame(frame, width=500, height=800)
+    label_frame.grid(row=0, column=0, padx=10, pady=5, sticky="w")
+
+    heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0")
     heart_line_label.grid(row=0, column=0, sticky="w", padx=10, pady=5)
 
-    thorax_line_label = tk.Label(frame, text="Thorax Line Length: 0.0")
+    thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0")
     thorax_line_label.grid(row=1, column=0, sticky="w", padx=10, pady=5)
 
-    ratio_label = tk.Label(frame, text="Cardiothoracic Ratio:")
+    ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:")
     ratio_label.grid(row=2, column=0, sticky="w", padx=10, pady=5)
 
-    percentage_label = tk.Label(frame, text="Percentage of Ratio:")
+    percentage_label = tk.Label(label_frame, text="Percentage of Ratio:")
     percentage_label.grid(row=3, column=0, sticky="w", padx=10, pady=5)
 
-    next_button = tk.Button(frame, text="Next", command=app.next_image)
-    next_button.grid(row=4, column=0, padx=10, pady=5, sticky="w")
+    Diagnosis_label = tk.Label(label_frame, text="Diagnosis:")
+    Diagnosis_label.grid(row=4, column=0, sticky="w", padx=10, pady=5)
 
-    previous_button = tk.Button(frame, text="Previous", command=app.previous_image)
-    previous_button.grid(row=4, column=1, padx=10, pady=5, sticky="w")
+    next_button = tk.Button(label_frame, text="Next", command=app.next_image)
+    next_button.grid(row=10, column=0, padx=10, pady=5, sticky="w")
+
+    previous_button = tk.Button(label_frame, text="Previous", command=app.previous_image)
+    previous_button.grid(row=10, column=0, padx=10, pady=5, sticky="s")
+
+
 
     # Move the image canvas to the right side
     app.canvas.grid(row=0, column=1, rowspan=5, padx=10, pady=10, sticky="nsew")
