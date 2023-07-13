@@ -29,51 +29,56 @@ class DrawingApp:
 
         self.current_result:Result = None
         self.current_measurement:Measurement = None
+        self.original_image :Image= None
+
 
         self.all_results = []
 
-        # Create a separate frame for labels and data with a set width
-        label_frame = tk.Frame(root, background="#797EF6", width=500)
-        label_frame.pack(side="left", expand=False, fill="y", anchor="w")
+       
 
-        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#797EF6")
+        # Create a separate frame for labels and data with a set width
+        label_frame = tk.Frame(self.root, background="#AAC9DD", width=200, height=1000)
+        label_frame.pack(side="left",fill="both", anchor="w")
+
+        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD")
         padx = 10
         pady = 10
         self.heart_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0", background="#797EF6")
+        self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0", background="#AAC9DD")
         self.thorax_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#797EF6")
+        self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#AAC9DD")
         self.ratio_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#797EF6")
+        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD")
         self.percentage_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.Diagnosis_label = tk.Label(label_frame, text="Diagnosis:", background="#797EF6")
+        self.Diagnosis_label = tk.Label(label_frame, text="Diagnosis:", background="#AAC9DD")
         self.Diagnosis_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
 
         # Create a frame to hold the labels and buttons
-        image_frame = tk.Frame(root, background="green")
+        image_frame = tk.Frame(root)
         image_frame.pack(side="left", expand=True, fill="both", anchor="w")
 
-        self.canvas = tk.Canvas(image_frame, background="blue")
+        self.canvas = tk.Canvas(image_frame)
         self.canvas.pack(expand=True, fill=tk.BOTH)
 
         self.canvas.bind("<Button-1>", self.start_drawing)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.canvas.bind("<ButtonRelease-1>", self.button_release)
+        self.canvas.bind("<Configure>", self.canvas_resized)
         
 
-        button_frame = tk.Frame(image_frame, background="purple")
-        button_frame.pack()
+        button_frame = tk.Frame(label_frame, background="#AAC9DD")
+        button_frame.pack(side="top", fill="x")
 
-        self.next_button = tk.Button(image_frame, text="Next", command=self.next_image, background="#797EF6")
-        self.next_button.pack(side="bottom", padx=padx, pady=pady, anchor="se")
+        self.next_button = tk.Button(button_frame, text="Next", command=self.next_image, background="#C1E3ED")
+        self.next_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
-        self.previous_button = tk.Button(image_frame, text="Previous", command=self.previous_image, background="#797EF6")
-        self.previous_button.pack(side="bottom", padx=padx, pady=pady, anchor="sw")
+        self.previous_button = tk.Button(button_frame, text="Previous", command=self.previous_image, background="#C1E3ED")
+        self.previous_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
     
 
@@ -102,10 +107,11 @@ class DrawingApp:
         if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths_del):
             self.current_result = self.all_results[self.current_image_index]
             self.current_measurement = self.current_result.heart
-            self.image = Image.open(self.current_result.image_name)
-            self.image_tk = ImageTk.PhotoImage(self.image)
+            self.original_image = Image.open(self.current_result.image_name)
+            self.update_image()
+            #self.image_tk = ImageTk.PhotoImage(self.image)
             #self.canvas.config(width=self.image.width, height=self.image.height)
-            self.canvas.create_image(0, 0, anchor="nw", image=self.image_tk)
+            #self.canvas.create_image(0, 0, anchor="nw", image=self.image_tk)
 
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y)
@@ -164,6 +170,32 @@ class DrawingApp:
             self.update_results()
 
 
+    def canvas_resized(self, event):
+        print(f"{self.canvas.winfo_width()}, {self.canvas.winfo_height()}")
+        self.update_image()
+
+
+    def update_image(self):
+        if self.original_image !=None:
+            self.canvas_width = self.canvas.winfo_width()
+            self.canvas_height = self.canvas.winfo_height()
+            self.image_ratio = self.original_image.size[0] / self.original_image.size[1]
+            self.canvas_ratio = self.canvas_width / self.canvas_height
+
+            if self.canvas_ratio > self.image_ratio:
+                height = int(self.canvas_height)
+                width = int(height * self.image_ratio)
+            else:
+                width = int(self.canvas_width)
+                height = int(width / self.image_ratio)
+
+            size_tuple= (width,height)
+            resized_image = self.original_image.resize(size=size_tuple)
+            self.tkimage= ImageTk.PhotoImage(image=resized_image)
+            print(resized_image)
+            self.canvas.create_image(0, 0, anchor="nw", image=self.tkimage)
+
+        
     def update_results(self):
 
         self.update_body_part(self.current_result.heart)
