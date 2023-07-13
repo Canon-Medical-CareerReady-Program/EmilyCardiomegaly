@@ -59,7 +59,7 @@ class DrawingApp:
 
 
         # Create a frame to hold the labels and buttons
-        image_frame = tk.Frame(root)
+        image_frame = tk.Frame(root, background="lightgrey")
         image_frame.pack(side="left", expand=True, fill="both", anchor="w")
 
         self.canvas = tk.Canvas(image_frame)
@@ -155,7 +155,8 @@ class DrawingApp:
         self.Diagnosis_label.config(text="Diagnosis:")
 
     def clear_measurements(self):
-        self.current_measurement.clear()
+        self.current_result.heart.clear()
+        self.current_result.thorax.clear()
 
     def next_image(self):
         if self.current_image_index < len(self.image_paths_del) - 1:
@@ -173,6 +174,7 @@ class DrawingApp:
     def canvas_resized(self, event):
         print(f"{self.canvas.winfo_width()}, {self.canvas.winfo_height()}")
         self.update_image()
+        self.update_results()
 
 
     def update_image(self):
