@@ -5,6 +5,9 @@ import math
 from measurement import Measurement
 from results import Result
 from point import Point
+import csv
+from typing import List
+
 
 class DrawingApp:
     def __init__(self, root:tk.Tk):
@@ -32,13 +35,13 @@ class DrawingApp:
         self.original_image :Image= None
 
 
-        self.all_results = []
+        self.all_results : List[Result] = []
 
        
 
         # Create a separate frame for labels and data with a set width
-        label_frame = tk.Frame(self.root, background="#AAC9DD", width=200, height=1000)
-        label_frame.pack(side="left",fill="both", anchor="w")
+        label_frame = tk.Frame(root, background="#AAC9DD", width=400)
+        label_frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
         self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD")
         padx = 10
@@ -71,14 +74,17 @@ class DrawingApp:
         self.canvas.bind("<Configure>", self.canvas_resized)
         
 
-        button_frame = tk.Frame(label_frame, background="#AAC9DD")
-        button_frame.pack(side="top", fill="x")
+        button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
+        button_frame.pack(side=tk.TOP,fill=tk.BOTH)
 
         self.next_button = tk.Button(button_frame, text="Next", command=self.next_image, background="#C1E3ED")
         self.next_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
         self.previous_button = tk.Button(button_frame, text="Previous", command=self.previous_image, background="#C1E3ED")
         self.previous_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
+
+        self.spreadsheet_button = tk.Button(button_frame, text="Save to spreadsheet?", command=self.save_to_spreadsheet, background="#C1E3ED")
+        self.spreadsheet_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
     
 
@@ -170,6 +176,13 @@ class DrawingApp:
             self.load_current_image()
             self.update_results()
 
+    def save_to_spreadsheet(self):
+        with open("Cardiomegaly Data.csv", mode="w", newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
+            for result in self.all_results:
+                writer.writerow([result.image_name, result.heart.length(), result.thorax.length(), result.ratio(), result.percentage(), result.symptoms()])
+
 
     def canvas_resized(self, event):
         print(f"{self.canvas.winfo_width()}, {self.canvas.winfo_height()}")
@@ -207,7 +220,7 @@ class DrawingApp:
             self.ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
             self.percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
 
-            if self.current_result.ratio() > 0.5:
+            if self.current_result.symptoms():
                 self.Diagnosis_label.config(text="Ratio is > 0.5, indicating an enlarged heart.")
             else:
                 self.Diagnosis_label.config(text="Ratio is not > 0.5, indicating a normal heart size.")
@@ -233,9 +246,6 @@ class DrawingApp:
 
         self.heart_line_label.config(text="Heart Line Length: {:.2f}".format(self.current_result.heart.length()))
         self.thorax_line_label.config(text="Thorax Line Length: {:.2f}".format(self.current_result.thorax.length()))
-
-
-
 
 if __name__ == "__main__":
     root = tk.Tk()

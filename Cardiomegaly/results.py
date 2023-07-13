@@ -18,3 +18,6 @@ class Result:
     
     def save(self):
         pass
+
+    def symptoms(self) -> bool:
+        return self.ratio() > 0.5
