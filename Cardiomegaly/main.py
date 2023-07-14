@@ -7,6 +7,7 @@ from results import Result
 from point import Point
 import csv
 from typing import List
+from tkinter import ttk
 
 
 class DrawingApp:
@@ -16,7 +17,7 @@ class DrawingApp:
 
         self.root.minsize(width=600, height=500)
     
-        
+        self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"}  # Button colors based on selected options
 
         self.image_paths_del = []  # List to store the paths of opened images
         self.current_image_index = -1  # Index of the currently displayed image
@@ -83,8 +84,11 @@ class DrawingApp:
         self.previous_button = tk.Button(button_frame, text="Previous", command=self.previous_image, background="#C1E3ED")
         self.previous_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
-        self.spreadsheet_button = tk.Button(button_frame, text="Save to spreadsheet?", command=self.save_to_spreadsheet, background="#C1E3ED")
+        self.spreadsheet_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_spreadsheet, background="#C1E3ED")
         self.spreadsheet_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
+
+        self.style = ttk.Style()
+        self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
 
     
 
@@ -142,6 +146,7 @@ class DrawingApp:
             self.current_measurement = self.current_result.heart
         else:
             self.current_measurement = self.current_result.thorax
+        self.update_button_colours()
        
 
     def calculate_ratio_and_percentage(self):
@@ -182,7 +187,15 @@ class DrawingApp:
             writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
             for result in self.all_results:
                 writer.writerow([result.image_name, result.heart.length(), result.thorax.length(), result.ratio(), result.percentage(), result.symptoms()])
-
+    
+    def update_button_colors(self):
+        # Update button colors based on the selected option
+        for button_name, button_color in self.button_colors.items():
+            style_name = f"{button_name}.TButton"
+            if button_name == self.current_measurement.body_part:
+                self.style.configure(style_name, background=button_color, relief="sunken")
+            else:
+                self.style.configure(style_name, background=button_color, relief="raised")
 
     def canvas_resized(self, event):
         print(f"{self.canvas.winfo_width()}, {self.canvas.winfo_height()}")
