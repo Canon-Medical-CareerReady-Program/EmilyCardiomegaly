@@ -38,7 +38,9 @@ class DrawingApp:
 
         self.all_results : List[Result] = []
 
-       
+        # Add a dictionary to store the pixel spacing for each image
+        self.pixel_spacing = {}
+        self.image_name = []        
 
         # Create a separate frame for labels and data with a set width
         label_frame = tk.Frame(root, background="#AAC9DD", width=400)
@@ -101,6 +103,7 @@ class DrawingApp:
 
         self.root.config(menu=menubar)
 
+
     def open_image(self):
         file_paths = filedialog.askopenfilenames(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
         if file_paths:
@@ -108,8 +111,10 @@ class DrawingApp:
             self.current_image_index = 0  # Set the current image index to the first image
             for file_path in file_paths:
                 result = Result()
-                result.image_name = file_path
+                result.image_name = file_path 
+                result.short_image_name = file_path.split('/')[-1]
                 self.all_results.append(result)
+            self.load_image_metadata()
             self.load_current_image()  # Load the current image
 
 
@@ -119,17 +124,13 @@ class DrawingApp:
             self.current_measurement = self.current_result.heart
             self.original_image = Image.open(self.current_result.image_name)
             self.update_image()
-            #self.image_tk = ImageTk.PhotoImage(self.image)
-            #self.canvas.config(width=self.image.width, height=self.image.height)
-            #self.canvas.create_image(0, 0, anchor="nw", image=self.image_tk)
 
     def start_drawing(self, event):
-        self.current_measurement.start = Point(event.x, event.y)
+        self.current_measurement.start = Point(event.x, event.y) / self.calculate_scale_factor()
 
     def draw(self, event):
-        # Calculate the coordinates for a straight line
-        self.current_measurement.end = Point(event.x, event.y)
-        
+        self.current_measurement.end = Point(event.x, event.y) / self.calculate_scale_factor() 
+
         self.update_body_part(self.current_measurement)
 
         # Recalculate ratio and percentage
@@ -146,7 +147,7 @@ class DrawingApp:
             self.current_measurement = self.current_result.heart
         else:
             self.current_measurement = self.current_result.thorax
-        self.update_button_colours()
+        self.update_button_colors()
        
 
     def calculate_ratio_and_percentage(self):
@@ -159,8 +160,8 @@ class DrawingApp:
         self.clear_measurements()  # Clear the stored measurements
 
         # Reset the labels
-        self.heart_line_label.config(text="Heart Line Length: 0.0 ")
-        self.thorax_line_label.config(text="Thorax Line Length: 0.0 ")
+        self.heart_line_label.config(text="Heart Line Length: 0.0 mm")
+        self.thorax_line_label.config(text="Thorax Line Length: 0.0 mm")
         self.ratio_label.config(text="Cardiothoracic Ratio:")
         self.percentage_label.config(text="Percentage of Ratio:")
         self.Diagnosis_label.config(text="Diagnosis:")
@@ -223,14 +224,52 @@ class DrawingApp:
             print(resized_image)
             self.canvas.create_image(0, 0, anchor="nw", image=self.tkimage)
 
-        
+    def calculate_scale_factor(self):
+        if self.original_image !=None:
+            self.canvas_width = self.canvas.winfo_width()
+            self.canvas_height = self.canvas.winfo_height()
+            self.image_width, self.image_height = self.original_image.size
+            self.scale_x = self.canvas_width / self.image_width
+            self.scale_y = self.canvas_height / self.image_height
+
+            # Choose the smaller scale factor to maintain the image's aspect ratio
+            scale_factor = min(self.scale_x, self.scale_y)
+
+            return scale_factor
+
+        return 1.0  # Default scale factor if there is no image
+    
+
+    def load_image_metadata(self):        
+        with open("Data\BBox_List_2017.csv", newline='') as csvfile:
+            reader = csv.DictReader(csvfile)
+            # For each row in the CSV file...
+            for row in reader:
+                # Load bits of the row from the CSV file...
+                image_name = row["Image Index"]
+                self.pixel_spacing_x = float(row["OriginalImagePixelSpacingX"])
+                self.pixel_spacing_y = float(row["OriginalImagePixelSpacingY"])
+                # Ok, now we want to find which of the images we selected in the File open dialog (all_results) has a image name that matches the image name in the row
+                for result in self.all_results:
+                    if image_name == result.short_image_name:
+                        result.pixel_spacing[0] = self.pixel_spacing_x
+                        result.pixel_spacing[1] = self.pixel_spacing_y
+
+
+    def convert_to_mm(self):
+        self.current_measurement.start.x *= self.pixel_spacing_x
+        self.current_measurement.start.y *= self.pixel_spacing_y
+        self.current_measurement.end.x *= self.pixel_spacing_x
+        self.current_measurement.end.y *= self.pixel_spacing_y
+
+
     def update_results(self):
 
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
 
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
-            self.ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio(), self.current_result.heart.length(), self.current_result.thorax.length()))
+            self.ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio()))
             self.percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
 
             if self.current_result.symptoms():
@@ -242,23 +281,27 @@ class DrawingApp:
             self.ratio_label.config(text="Cardiothoracic Ratio:")
             self.percentage_label.config(text="Percentage of Ratio:")
             self.Diagnosis_label.config(text="Diagnosis:")
-
+        
 
 
     def update_body_part(self, measurement:Measurement): 
+        self.scale_factor = self.calculate_scale_factor()
+       
+        x0 = measurement.start.x * self.scale_factor
+        y0 = measurement.start.y * self.scale_factor
+        x1 = measurement.end.x * self.scale_factor
+        y1 = measurement.end.y * self.scale_factor
 
-        x0 = measurement.start.x
-        y0 = measurement.start.y
-        x1 = measurement.end.x
-        y1 = measurement.end.y
+        self.heart_length_mm = self.current_result.heart.length() * self.current_result.pixel_spacing[0]
+        self.thorax_length_mm = self.current_result.thorax.length() * self.current_result.pixel_spacing[0]
 
         # Draw the straight line
         line_color = "purple" if measurement == self.current_result.heart else "blue"
         self.canvas.delete(measurement.body_part)  # Delete previous line
         self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=measurement.body_part)
 
-        self.heart_line_label.config(text="Heart Line Length: {:.2f}".format(self.current_result.heart.length()))
-        self.thorax_line_label.config(text="Thorax Line Length: {:.2f}".format(self.current_result.thorax.length()))
+        self.heart_line_label.config(text="Heart Line Length: {:.2f} mm".format(self.heart_length_mm))
+        self.thorax_line_label.config(text="Thorax Line Length: {:.2f} mm".format(self.thorax_length_mm))
 
 if __name__ == "__main__":
     root = tk.Tk()
