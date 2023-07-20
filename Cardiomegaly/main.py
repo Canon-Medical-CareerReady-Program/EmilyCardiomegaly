@@ -1,18 +1,25 @@
-
+import tkinter as tk
+from tkinter import filedialog
+from PIL import Image, ImageTk
+import math
+from measurement import Measurement
+from results import Result
+from point import Point
+import csv
+from typing import List
+from tkinter import ttk
 
 
 class DrawingApp:
     def __init__(self, root:tk.Tk):
         self.root = root
-        self.root.title("Poo Detector")
-
+        self.root.title("Cardiomegaly Detector")
         self.root.minsize(width=600, height=500)
     
         self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"}  # Button colors based on selected options
 
         self.image_paths_del = []  # List to store the paths of opened images
         self.current_image_index = -1  # Index of the currently displayed image
-
         self.image = None
         self.image_tk = None
         self.modified_image = None
@@ -21,28 +28,34 @@ class DrawingApp:
         self.create_menu()
 
         self.ratio = 0.0
-
         self.current_result:Result = None
         self.current_measurement:Measurement = None
         self.original_image :Image= None
-
 
         self.all_results : List[Result] = []
 
         # Add a dictionary to store the pixel spacing for each image
         self.pixel_spacing = {}
+        self.patient_ID = {}
+        self.patient_gender = {}
+        self.patient_age = {}
         self.image_name = []        
 
+
         # Create a separate frame for labels and data with a set width
-        label_frame = tk.Frame(root, background="#AA9DD", width=400)
+        label_frame = tk.Frame(root, background="#AAC9DD", width=400)
         label_frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
-        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD")
-        padx = 10
-        pady = 10
+        padx = 5
+        pady = 5
+            
+        self.measurement_label = tk.Label(label_frame, text="Measurements", background="#AAC9DD", font=("Arial", 10))
+        self.measurement_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
+
+        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0 mm", background="#AAC9DD", font=("Ariel", 10))
         self.heart_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0", background="#AAC9DD", font=("Arial", 10))
+        self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0 mm", background="#AAC9DD", font=("Arial", 10))
         self.thorax_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#AAC9DD", font=("Arial", 10))
@@ -51,10 +64,8 @@ class DrawingApp:
         self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD")
         self.percentage_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.Diagnosis_label = tk.Label(label_frame, text="Diagnosis:", background="#AAC9DD", font=("Arial", 10))
+        self.Diagnosis_label = tk.Label(label_frame, text="Symptomatic:", background="#AAC9DD", font=("Arial", 10))
         self.Diagnosis_label.pack(side="top", padx=padx, pady=pady, anchor="w")
-
-
 
 
         # Create a frame to hold the labels and buttons
@@ -77,41 +88,37 @@ class DrawingApp:
         self.spreadsheet_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
 
         self.previous_image_button = tk.Button(button_frame, text="Previous Image", command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
-        self.previous_image_button.pack(side="left", padx=padx, pady=pady, anchor="nw")
+        self.previous_image_button.pack(side="left", padx=padx, pady=10, anchor="nw")
 
         self.next_image_button = tk.Button(button_frame, text="Next Image", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
-        self.next_image_button.pack(side="left", padx=padx, pady=pady, anchor="nw")
+        self.next_image_button.pack(side="left", padx=padx, pady=10, anchor="nw")
         
     
         self.Info_label = tk.Label(label_frame, text="Patient Info", background="#AAC9DD", font=("Arial", 10))
-        self.Info_label.pack(side="left", padx=padx, pady=10, anchor="nw")
+        self.Info_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
 
         self.ID_label = tk.Label(label_frame, text="ID:", background="#AAC9DD", font=("Arial", 10))
-        self.ID_label.pack(side="left", padx=padx, pady=pady, anchor="nw")
+        self.ID_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
 
         self.Gender_label = tk.Label(label_frame, text="Gender:", background="#AAC9DD", font=("Arial", 10))
-        self.Gender_label.pack(side="left", padx=padx, pady=pady, anchor="nw")
+        self.Gender_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
 
         self.Age_label = tk.Label(label_frame, text="Age:", background="#AAC9DD", font=("Arial", 10))
-        self.Age_label.pack(side="left", padx=padx, pady=pady, anchor="nw")
+        self.Age_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
 
 
-        #self.most_recent_button = tk.Button(button_frame, text="Most Recent x-ray", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
-        #self.most_recent_button.pack(side="top", padx=padx, pady=pady, anchor="w")
-        
-        #self.least_recent_button = tk.Button(button_frame, text="Least Recent X-ray", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
-        #self.least_recent_button.pack(side="left", padx=padx, pady=pady, anchor="w")
+        other_button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
+        other_button_frame.pack(side=tk.TOP,fill=tk.BOTH)
                 
-        self.previous_patient_button = tk.Button(button_frame, text="Previous Patient", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
-        self.previous_patient_button.pack(side="left", padx=padx, pady=pady, anchor="s")
+        self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", background="#C1E3ED", font=("Arial", 10))
+        self.previous_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
-        self.next_button = tk.Button(button_frame, text="Next Patient", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
-        self.next_button.pack(side="left", padx=padx, pady=pady, anchor="s")
+        self.next_button = tk.Button(other_button_frame, text="Next Patient", background="#C1E3ED", font=("Arial", 10))
+        self.next_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
         self.style = ttk.Style()
-        self.style.configure("Selected.TButton", background=Self.button_colors["Heart Line"])  # Set initial button color
+        self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
 
-    
 
     def create_menu(self):
         menubar = tk.Menu(self.root, background="light blue", foreground="black")
@@ -121,7 +128,6 @@ class DrawingApp:
         menubar.add_cascade(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
 
         self.root.config(menu=menubar)
-
 
     def open_image(self):
         file_paths = filedialog.askopenfilenames(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
@@ -136,14 +142,17 @@ class DrawingApp:
             self.load_image_metadata()
             self.load_current_image()  # Load the current image
 
-
     def load_current_image(self):
         if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths_del):
             self.current_result = self.all_results[self.current_image_index]
             self.current_measurement = self.current_result.heart
             self.original_image = Image.open(self.current_result.image_name)
             self.update_image()
-
+                  
+            self.ID_label.config(text="ID: {}".format(self.current_result.patient_ID))
+            self.Gender_label.config(text="Gender: {}".format(self.current_result.patient_gender))
+            self.Age_label.config(text="Age: {}".format(self.current_result.patient_age))
+            
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y) / self.calculate_scale_factor()
 
@@ -160,7 +169,6 @@ class DrawingApp:
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
 
-
     def select_variable(self, variable):
         if variable == "Heart Line":
             self.current_measurement = self.current_result.heart
@@ -168,7 +176,6 @@ class DrawingApp:
             self.current_measurement = self.current_result.thorax
         self.update_button_colors()
        
-
     def calculate_ratio_and_percentage(self):
         self.update_results()
 
@@ -179,11 +186,14 @@ class DrawingApp:
         self.clear_measurements()  # Clear the stored measurements
 
         # Reset the labels
-        self.heart_line_label.config(text="poo: 0.0 mm")
-        self.thorax_line_label.config(text="poo: 0.0 mm")
-        self.ratio_label.config(text="poo:")
+        self.heart_line_label.config(text="Heart Line Length: 0.0 mm")
+        self.thorax_line_label.config(text="Thorax Line Length: 0.0 mm")
+        self.ratio_label.config(text="Cardiothoracic Ratio:")
         self.percentage_label.config(text="Percentage of Ratio:")
-        self.Diagnosis_label.config(text="Diagnosis:")
+        self.Diagnosis_label.config(text="Symptomatic:")
+        self.ID_label.config(text="ID:")
+        self.Gender_label.config(text="Gender:")
+        self.Age_label.config(text="Age:")
 
     def clear_measurements(self):
         self.current_result.heart.clear()
@@ -257,7 +267,6 @@ class DrawingApp:
             return scale_factor
         return 1.0  # Default scale factor if there is no image
     
-
     def load_image_metadata(self):        
         with open("Data\BBox_List_2017.csv", newline='') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -280,14 +289,6 @@ class DrawingApp:
                         result.patient_gender = self.gender
                         result.patient_age = self.age
 
-
-    def convert_to_mm(self):
-        self.current_measurement.start.x *= self.pixel_spacing_x
-        self.current_measurement.start.y *= self.pixel_spacing_y
-        self.current_measurement.end.x *= self.pixel_spacing_x
-        self.current_measurement.end.y *= self.pixel_spacing_y
-
-
     def update_results(self):
 
         self.update_body_part(self.current_result.heart)
@@ -298,17 +299,15 @@ class DrawingApp:
             self.percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
 
             if self.current_result.symptoms():
-                self.Diagnosis_label.config(text="Ratio is > 0.5, indicating an enlarged heart.")
+                self.Diagnosis_label.config(text="indicates an enlarged heart.")
             else:
-                self.Diagnosis_label.config(text="Ratio is not > 0.5, indicating a normal heart size.")
+                self.Diagnosis_label.config(text="indicates a normal heart size.")
 
         else:
             self.ratio_label.config(text="Cardiothoracic Ratio:")
             self.percentage_label.config(text="Percentage of Ratio:")
-            self.Diagnosis_label.config(text="Diagnosis:")
+            self.Diagnosis_label.config(text="Symptomatic:")
         
-
-
     def update_body_part(self, measurement:Measurement): 
         self.scale_factor = self.calculate_scale_factor()
        
@@ -327,6 +326,7 @@ class DrawingApp:
 
         self.heart_line_label.config(text="Heart Line Length: {:.2f} mm".format(self.heart_length_mm))
         self.thorax_line_label.config(text="Thorax Line Length: {:.2f} mm".format(self.thorax_length_mm))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
