@@ -8,7 +8,46 @@ from point import Point
 import csv
 from typing import List
 from tkinter import ttk
+import random
 
+
+inspirational_messages = [
+    "Believe you can and you're halfway there.",
+    "The only limit to our realization of tomorrow will be our doubts of today.",
+    "Your time is limited, don't waste it living someone else's life.",
+    "The future belongs to those who believe in the beauty of their dreams.",
+    "Success is not final, failure is not fatal: It is the courage to continue that counts.",
+    "Believe in yourself and all that you are. Know that there is something inside you that is greater than any obstacle.",
+    "Your mind is a powerful thing. When you fill it with positive thoughts, your life will start to change.",
+    "The only way to do great work is to love what you do.",
+    "You are never too old to set another goal or to dream a new dream.",
+    "The best way to predict the future is to create it.",
+    "Don't watch the clock; do what it does. Keep going.",
+    "What lies behind us and what lies before us are tiny matters compared to what lies within us."
+]
+
+def show_inspirational_message():
+    message = random.choice(inspirational_messages)
+    message_label.config(text=message)
+
+# Create the main window
+root = tk.Tk()
+root.title("Inspirational Messages")
+root.geometry("400x200")
+
+# Create a label to display the message
+message_label = tk.Label(root, text="", wraplength=380, font=("Helvetica", 14), pady=20)
+message_label.pack()
+
+# Create a button to generate a new message
+generate_button = tk.Button(root, text="Generate", command=show_inspirational_message)
+generate_button.pack()
+
+# Show an initial message when the application starts
+show_inspirational_message()
+
+# Start the Tkinter event loop
+root.mainloop()
 
 class DrawingApp:
     def __init__(self, root:tk.Tk):
@@ -163,8 +202,8 @@ class DrawingApp:
         self.heart_line_label.config(text="Heart Line Length: 0.0 ")
         self.thorax_line_label.config(text="Thorax Line Length: 0.0 ")
         self.ratio_label.config(text="Cardiothoracic Ratio:")
-        self.percentage_label.config(text="Percentage of Ratio:")
-        self.Diagnosis_label.config(text="Diagnosis:")
+        self.percentage_label.config(text=":")
+        self.Diagnosis_label.config(text="no:")
 
     def clear_measurements(self):
         self.current_result.heart.clear()
