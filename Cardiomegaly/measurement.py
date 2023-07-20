@@ -16,3 +16,6 @@ class Measurement:
         self.start = Point(0.0, 0.0)
         self.end = Point(0.0, 0.0)
 
+    def mm_conversion(self):
+        pass 
+
