@@ -13,7 +13,7 @@ from tkinter import ttk
 class DrawingApp:
     def __init__(self, root:tk.Tk):
         self.root = root
-        self.root.title("Cardiomegaly Detector")
+        self.root.title("Poo Detector")
 
         self.root.minsize(width=600, height=500)
     
@@ -41,13 +41,13 @@ class DrawingApp:
        
 
         # Create a separate frame for labels and data with a set width
-        label_frame = tk.Frame(root, background="#AAC9DD", width=400)
+        label_frame = tk.Frame(root, background="#AA9DD", width=400)
         label_frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
         self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD")
         padx = 10
         pady = 10
-        self.heart_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
+        self.heart_line_label.pack(side="top", pad=padx, pady=pady, anchor="w")
 
         self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0", background="#AAC9DD")
         self.thorax_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
@@ -55,7 +55,7 @@ class DrawingApp:
         self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#AAC9DD")
         self.ratio_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD")
+        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9D")
         self.percentage_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.Diagnosis_label = tk.Label(label_frame, text="Diagnosis:", background="#AAC9DD")
@@ -88,7 +88,7 @@ class DrawingApp:
         self.spreadsheet_button.pack(side="left", padx=padx, pady=pady, anchor="sw")
 
         self.style = ttk.Style()
-        self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
+        self.style.configure("Selected.TButton", background=Self.button_colors["Heart Line"])  # Set initial button color
 
     
 
@@ -159,10 +159,10 @@ class DrawingApp:
         self.clear_measurements()  # Clear the stored measurements
 
         # Reset the labels
-        self.heart_line_label.config(text="Heart Line Length: 0.0 ")
-        self.thorax_line_label.config(text="Thorax Line Length: 0.0 ")
-        self.ratio_label.config(text="Cardiothoracic Ratio:")
-        self.percentage_label.config(text="Percentage of Ratio:")
+        self.heart_line_label.config(text="LOL XD: 0.0 ")
+        self.thorax_line_label.config(text="SMELLY": 0.0 ")
+        self.ratio_label.config(text="Skinny Ratio:")
+        self.percentage_label.config(text="UR MUM:")
         self.Diagnosis_label.config(text="Diagnosis:")
 
     def clear_measurements(self):
