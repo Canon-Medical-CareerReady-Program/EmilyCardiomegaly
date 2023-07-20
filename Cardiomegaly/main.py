@@ -19,6 +19,8 @@ class DrawingApp:
         self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"}  # Button colors based on selected options
 
         self.image_paths_del = []  # List to store the paths of opened images
+        self.current_patient_id = None
+        self.current_patient_images = []
         self.current_image_index = -1  # Index of the currently displayed image
         self.image = None
         self.image_tk = None
@@ -110,10 +112,10 @@ class DrawingApp:
         other_button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         other_button_frame.pack(side=tk.TOP,fill=tk.BOTH)
                 
-        self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", background="#C1E3ED", font=("Arial", 10))
+        self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", command=self.previous_patient, background="#C1E3ED", font=("Arial", 10))
         self.previous_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
-        self.next_button = tk.Button(other_button_frame, text="Next Patient", background="#C1E3ED", font=("Arial", 10))
+        self.next_button = tk.Button(other_button_frame, text="Next Patient", command=self.next_patient, background="#C1E3ED", font=("Arial", 10))
         self.next_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
         self.style = ttk.Style()
@@ -143,8 +145,8 @@ class DrawingApp:
             self.load_current_image()  # Load the current image
 
     def load_current_image(self):
-        if self.current_image_index >= 0 and self.current_image_index < len(self.image_paths_del):
-            self.current_result = self.all_results[self.current_image_index]
+        if 0 <= self.current_image_index < len(self.current_patient_images):
+            self.current_result = self.current_patient_images[self.current_image_index]
             self.current_measurement = self.current_result.heart
             self.original_image = Image.open(self.current_result.image_name)
             self.update_image()
@@ -205,11 +207,15 @@ class DrawingApp:
             self.load_current_image()
             self.update_results()
 
+        self.update_navigation_buttons()
+
     def previous_image(self):
         if self.current_image_index > 0:
             self.current_image_index -= 1
             self.load_current_image()
             self.update_results()
+
+        self.update_navigation_buttons()
 
     def save_to_spreadsheet(self):
         with open("Cardiomegaly Data.csv", mode="w", newline='') as csvfile:
@@ -288,6 +294,55 @@ class DrawingApp:
                         result.patient_ID = self.ID
                         result.patient_gender = self.gender
                         result.patient_age = self.age
+
+                        if self.ID not in self.patient_ID:
+                            self.patient_ID[self.ID] = []
+                        self.patient_ID[self.ID].append(result)
+
+        # Update the image list for the first patient ID (if available)
+        if len(self.patient_ID) > 0:
+            self.current_patient_id = sorted(self.patient_ID.keys())[0]
+            self.update_current_patient_images()
+
+    def update_current_patient_images(self):
+        self.current_patient_images = self.patient_ID.get(self.current_patient_id, [])
+        if len(self.current_patient_images) > 0:
+            self.current_image_index = 0
+            self.load_current_image()
+        else:
+            self.current_image_index = -1
+            self.current_result = None
+            self.current_measurement = None
+            self.original_image = None
+            self.canvas.delete("all")
+        
+        self.update_results()
+        self.update_navigation_buttons()
+
+    def next_patient(self):
+        if self.current_patient_id is not None:
+            patient_ids = sorted(self.patient_ID.keys())
+            next_index = patient_ids.index(self.current_patient_id) + 1
+            if next_index < len(patient_ids):
+                self.current_patient_id = patient_ids[next_index]
+                self.update_current_patient_images()
+                self.update_results()
+
+    def previous_patient(self):
+        if self.current_patient_id is not None:
+            patient_ids = sorted(self.patient_ID.keys())
+            prev_index = patient_ids.index(self.current_patient_id) - 1
+            if prev_index >= 0:
+                self.current_patient_id = patient_ids[prev_index]
+                self.update_current_patient_images()
+                self.update_results()
+
+    def update_navigation_buttons(self):
+        if self.current_patient_id is not None:
+            patient_ids = sorted(self.patient_ID.keys())
+            current_index = patient_ids.index(self.current_patient_id)
+            self.next_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
+            self.previous_patient_button.config(state="normal" if current_index > 0 else "disabled")
 
     def update_results(self):
 
