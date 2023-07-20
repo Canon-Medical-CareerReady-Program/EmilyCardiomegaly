@@ -6,7 +6,9 @@ class Result:
     def __init__(self) -> None:
         self.heart = Measurement("Heart")
         self.thorax = Measurement("Thorax")
-        self.image_name = ""        
+        self.image_name = ""  
+        self.short_image_name = ""
+        self.pixel_spacing = [1.0, 1.0]      
 
     def ratio(self):
         ratio = self.heart.length() / self.thorax.length()
