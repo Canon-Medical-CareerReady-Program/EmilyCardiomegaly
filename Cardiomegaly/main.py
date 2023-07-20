@@ -24,8 +24,8 @@ inspirational_messages = [
     "You are never too old to set another goal or to dream a new dream.",
     "The best way to predict the future is to create it.",
     "Don't watch the clock; do what it does. Keep going.",
-    "What lies behind us and what lies before us are tiny matters compared to what lies within us."
-    "LOLLLLLLL XD XD XD XD"
+    "What lies behind us and what lies before us are tiny matters compared to what lies within us.",
+    "LOLLLLLLL XD XD XD XD",
     "PRANKED #COOL # EPIC"
 ]
 
