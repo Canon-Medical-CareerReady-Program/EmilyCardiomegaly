@@ -1,19 +1,10 @@
-import tkinter as tk
-from tkinter import filedialog
-from PIL import Image, ImageTk
-import math
-from measurement import Measurement
-from results import Result
-from point import Point
-import csv
-from typing import List
-from tkinter import ttk
+
 
 
 class DrawingApp:
     def __init__(self, root:tk.Tk):
         self.root = root
-        self.root.title("Cardiomegaly Detector")
+        self.root.title("Poo Detector")
 
         self.root.minsize(width=600, height=500)
     
@@ -43,12 +34,12 @@ class DrawingApp:
         self.image_name = []        
 
         # Create a separate frame for labels and data with a set width
-        label_frame = tk.Frame(root, background="#AAC9DD", width=400)
+        label_frame = tk.Frame(root, background="#AA9DD", width=400)
         label_frame.pack(side=tk.LEFT,fill=tk.BOTH)
 
-        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD", font=("Arial", 10))
-        padx = 5
-        pady = 5
+        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0", background="#AAC9DD")
+        padx = 10
+        pady = 10
         self.heart_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0", background="#AAC9DD", font=("Arial", 10))
@@ -57,7 +48,7 @@ class DrawingApp:
         self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#AAC9DD", font=("Arial", 10))
         self.ratio_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD", font=("Arial", 10))
+        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD")
         self.percentage_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.Diagnosis_label = tk.Label(label_frame, text="Diagnosis:", background="#AAC9DD", font=("Arial", 10))
@@ -118,7 +109,7 @@ class DrawingApp:
         self.next_button.pack(side="left", padx=padx, pady=pady, anchor="s")
 
         self.style = ttk.Style()
-        self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
+        self.style.configure("Selected.TButton", background=Self.button_colors["Heart Line"])  # Set initial button color
 
     
 
@@ -188,11 +179,11 @@ class DrawingApp:
         self.clear_measurements()  # Clear the stored measurements
 
         # Reset the labels
-        self.heart_line_label.config(text="LOLLLLLLLLLLLLLL: 0.0 mm")
-        self.thorax_line_label.config(text="POO: 0.0 mm")
-        self.ratio_label.config(text="NAIMA smells:")
-        self.percentage_label.config(text="EMILY SUCKSSSSSS:")
-        self.Diagnosis_label.config(text="POOOOOOOOOOOOOOOOO:")
+        self.heart_line_label.config(text="poo: 0.0 mm")
+        self.thorax_line_label.config(text="poo: 0.0 mm")
+        self.ratio_label.config(text="poo:")
+        self.percentage_label.config(text="Percentage of Ratio:")
+        self.Diagnosis_label.config(text="Diagnosis:")
 
     def clear_measurements(self):
         self.current_result.heart.clear()
