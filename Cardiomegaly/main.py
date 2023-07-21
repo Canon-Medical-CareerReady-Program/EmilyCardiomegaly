@@ -115,8 +115,8 @@ class DrawingApp:
         self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", command=self.previous_patient, background="#C1E3ED", font=("Arial", 10))
         self.previous_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
-        self.next_button = tk.Button(other_button_frame, text="Next Patient", command=self.next_patient, background="#C1E3ED", font=("Arial", 10))
-        self.next_button.pack(side="left", padx=padx, pady=10, anchor="w")
+        self.next_patient_button = tk.Button(other_button_frame, text="Next Patient", command=self.next_patient, background="#C1E3ED", font=("Arial", 10))
+        self.next_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
         self.style = ttk.Style()
         self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
@@ -341,8 +341,15 @@ class DrawingApp:
         if self.current_patient_id is not None:
             patient_ids = sorted(self.patient_ID.keys())
             current_index = patient_ids.index(self.current_patient_id)
-            self.next_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
+            self.next_patient_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
             self.previous_patient_button.config(state="normal" if current_index > 0 else "disabled")
+
+    # def update_other_buttons(self):
+    #      if self.current_patient_images is not None:
+    #          patient_images = sorted(self.image_name.keys())
+    #          current_index = patient_images.index(self.current_patient_id)
+    #          self.next_image_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
+    #          self.previous_image_button.config(state="normal" if current_index > 0 else "disabled")
 
     def update_results(self):
 
