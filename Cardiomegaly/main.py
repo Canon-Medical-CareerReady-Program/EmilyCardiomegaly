@@ -18,6 +18,7 @@ class DrawingApp:
 
         #if data folder doesnt exist what happens??? create a folder to fix 
         self.database = Database("Data/results.sqlite")
+        Measurement.initialise_database(self.database)
     
         self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"} 
          # Button colors based on selected options
@@ -42,7 +43,7 @@ class DrawingApp:
 
         #saving all the information found in result to the array all_results
         #List does.....
-        self.all_results : List[Result] = []
+        self.all_results : List[Result] = Measurement.from_database(self.database)
 
         # Add a dictionary to store the information for each image
         self.pixel_spacing = {} #pixel spacing is used for the resizing of images for different screen sizes

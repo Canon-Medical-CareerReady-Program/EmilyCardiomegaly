@@ -20,9 +20,6 @@ class Result:
     def percentage(self):
         percentage = round(self.ratio()*100, 2)
         return percentage
-    
-    def save(self):
-        pass
 
     def symptoms(self) -> bool:
         return self.ratio() > 0.5
