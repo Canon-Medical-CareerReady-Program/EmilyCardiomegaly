@@ -1,22 +1,26 @@
 import tkinter as tk
 from tkinter import filedialog
 from PIL import Image, ImageTk
-import math
 from measurement import Measurement
 from results import Result
 from point import Point
+from database import Database
 import csv
 from typing import List
 from tkinter import ttk
 
-
+#main class. this program uses object orientated programming as it have 4 classes; DrawingApp, Measurement, Result, and Point. 
 class DrawingApp:
     def __init__(self, root:tk.Tk):
         self.root = root
         self.root.title("Cardiomegaly Detector")
         self.root.minsize(width=600, height=500)
+
+        #if data folder doesnt exist what happens??? create a folder to fix 
+        self.database = Database("Data/results.sqlite")
     
-        self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"}  # Button colors based on selected options
+        self.button_colors = {"Heart Line": "#C1E3ED", "Thorax Line": "#C1E3ED"} 
+         # Button colors based on selected options
 
         self.image_paths_del = []  # List to store the paths of opened images
         self.current_patient_id = None
@@ -30,18 +34,23 @@ class DrawingApp:
         self.create_menu()
 
         self.ratio = 0.0
-        self.current_result:Result = None
+        #setting current values for the arrays of values
+        self.current_result:Result = None 
         self.current_measurement:Measurement = None
         self.original_image :Image= None
 
+
+        #saving all the information found in result to the array all_results
+        #List does.....
         self.all_results : List[Result] = []
 
-        # Add a dictionary to store the pixel spacing for each image
-        self.pixel_spacing = {}
+        # Add a dictionary to store the information for each image
+        self.pixel_spacing = {} #pixel spacing is used for the resizing of images for different screen sizes
         self.patient_ID = {}
+        self.patient_images = {}
         self.patient_gender = {}
         self.patient_age = {}
-        self.image_name = []        
+        self.image_name = [] #an array of the names that the images are stored as in the csv file       
 
 
         # Create a separate frame for labels and data with a set width
@@ -50,11 +59,12 @@ class DrawingApp:
 
         padx = 5
         pady = 5
-            
+
+        #using tkinter i have created labels for all the buttons used in the program    
         self.measurement_label = tk.Label(label_frame, text="Measurements", background="#AAC9DD", font=("Arial", 10))
         self.measurement_label.pack(side="top", padx=padx, pady=pady, anchor="nw")
 
-        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0 mm", background="#AAC9DD", font=("Ariel", 10))
+        self.heart_line_label = tk.Label(label_frame, text="Heart Line Length: 0.0 mm", background="#AAC9DD", font=("Arial", 10))
         self.heart_line_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.thorax_line_label = tk.Label(label_frame, text="Thorax Line Length: 0.0 mm", background="#AAC9DD", font=("Arial", 10))
@@ -63,7 +73,7 @@ class DrawingApp:
         self.ratio_label = tk.Label(label_frame, text="Cardiothoracic Ratio:", background="#AAC9DD", font=("Arial", 10))
         self.ratio_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
-        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD")
+        self.percentage_label = tk.Label(label_frame, text="Percentage of Ratio:", background="#AAC9DD", font=("Arial", 10))
         self.percentage_label.pack(side="top", padx=padx, pady=pady, anchor="w")
 
         self.Diagnosis_label = tk.Label(label_frame, text="Symptomatic:", background="#AAC9DD", font=("Arial", 10))
@@ -77,17 +87,19 @@ class DrawingApp:
         self.canvas = tk.Canvas(image_frame)
         self.canvas.pack(expand=True, fill=tk.BOTH)
 
+        #connecting an action to a function. e.g, when a button is in motion, it will call the function draw 
+        #which is what makes the lines appear as the user is moving the mouse across the image
         self.canvas.bind("<Button-1>", self.start_drawing)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.canvas.bind("<ButtonRelease-1>", self.button_release)
         self.canvas.bind("<Configure>", self.canvas_resized)
         
-
+        #using tkinter to create a frame for the buttons in the program.
         button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         button_frame.pack(side=tk.TOP,fill=tk.BOTH)
-
-        self.spreadsheet_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_spreadsheet, background="#C1E3ED", font=("Arial", 10))
-        self.spreadsheet_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
+        
+        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_database, background="#C1E3ED", font=("Arial", 10))
+        self.database_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
 
         self.previous_image_button = tk.Button(button_frame, text="Previous Image", command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
         self.previous_image_button.pack(side="left", padx=padx, pady=10, anchor="nw")
@@ -121,16 +133,20 @@ class DrawingApp:
         self.style = ttk.Style()
         self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
 
-
+    #creating a menu to appear at the top of the screen with commands calling on functions 
+    #throughout the program when the corresponding button is pressed
     def create_menu(self):
         menubar = tk.Menu(self.root, background="light blue", foreground="black")
-        menubar.add_cascade(label="Open", command=self.open_image, background="light blue", foreground="black")
-        menubar.add_cascade(label="Clear", command=self.clear_canvas, background="light blue", foreground="black")
-        menubar.add_cascade(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black")
-        menubar.add_cascade(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black")
+        menubar.add_command(label="Open Image", command=self.open_image, background="light blue", foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Clear Lines", command=self.clear_canvas, background="light blue", foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black", font=("Arial", 75))
 
         self.root.config(menu=menubar)
-
+    
+    #this function is executed when the "Open Image" button is pressed in the menu.
+    #it stores the images that the user opens and stored it and its name. 
+    #it then calls on the functions to load the data that is found with the current image in the data csv file, "Data\BBox_List_2017.csv"
     def open_image(self):
         file_paths = filedialog.askopenfilenames(filetypes=[("Image Files", "*.jpg *.jpeg *.png *.gif")])
         if file_paths:
@@ -144,6 +160,7 @@ class DrawingApp:
             self.load_image_metadata()
             self.load_current_image()  # Load the current image
 
+    #load and display the image and the data found to go with it in the csv and display them with the corresponding labels on the screen
     def load_current_image(self):
         if 0 <= self.current_image_index < len(self.current_patient_images):
             self.current_result = self.current_patient_images[self.current_image_index]
@@ -154,19 +171,28 @@ class DrawingApp:
             self.ID_label.config(text="ID: {}".format(self.current_result.patient_ID))
             self.Gender_label.config(text="Gender: {}".format(self.current_result.patient_gender))
             self.Age_label.config(text="Age: {}".format(self.current_result.patient_age))
-            
+
+    #this function is called when you mouse or trackpad button is pushed down.
+    #it saves the points that the drawing is started at so a line can be drawn starting at that point      
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y) / self.calculate_scale_factor()
-
+    
+    #similar to the start_drawing function, this saves the coordinate of when the button is relased, so the end of the line
+    #it also saves the current body_part (either the heart or the thorax) and saves it as the measurement
+    #and calls the calculate_ratio_and_percentage function if there is now measurements stored for both the heart and thorax length
+        
     def draw(self, event):
+        #store the point (x,y) when the mouse lifts at the end of the drawn lines
         self.current_measurement.end = Point(event.x, event.y) / self.calculate_scale_factor() 
 
         self.update_body_part(self.current_measurement)
 
         # Recalculate ratio and percentage
+        # The function to calculate the ratio and percentage will be called only when
+        # there is values stored for both the heart and thorax line length e.g. when they dont equal 0
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.calculate_ratio_and_percentage()
-
+    #
     def button_release(self, event):
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
@@ -186,6 +212,7 @@ class DrawingApp:
         self.canvas.delete(self.current_result.thorax.body_part) # Delete all items on the canvas
         self.drawn_lines = []  # Clear the stored lines
         self.clear_measurements()  # Clear the stored measurements
+        self.current_measurement = self.current_result.heart
 
         # Reset the labels
         self.heart_line_label.config(text="Heart Line Length: 0.0 mm")
@@ -217,8 +244,8 @@ class DrawingApp:
 
         self.update_navigation_buttons()
 
-    def save_to_spreadsheet(self):
-        with open("Cardiomegaly Data.csv", mode="w", newline='') as csvfile:
+    def save_to_database(self):
+        with open("Cardiomegaly Data.csv", mode="a", newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
             for result in self.all_results:
@@ -343,16 +370,11 @@ class DrawingApp:
             current_index = patient_ids.index(self.current_patient_id)
             self.next_patient_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
             self.previous_patient_button.config(state="normal" if current_index > 0 else "disabled")
-
-    # def update_other_buttons(self):
-    #      if self.current_patient_images is not None:
-    #          patient_images = sorted(self.image_name.keys())
-    #          current_index = patient_images.index(self.current_patient_id)
-    #          self.next_image_button.config(state="normal" if current_index < len(patient_ids) - 1 else "disabled")
-    #          self.previous_image_button.config(state="normal" if current_index > 0 else "disabled")
+        if self.current_patient_images is not None:
+            self.next_image_button.config(state="normal" if self.current_image_index < len(self.current_patient_images) - 1 else "disabled")
+            self.previous_image_button.config(state="normal" if self.current_image_index > 0 else "disabled")
 
     def update_results(self):
-
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
 
@@ -394,4 +416,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = DrawingApp(root)
     root.mainloop()
-

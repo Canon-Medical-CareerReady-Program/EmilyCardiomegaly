@@ -6,6 +6,8 @@ class Measurement:
 
     def __init__(self, body_part) -> None:
         self.body_part = body_part
+        self.heart = 0
+        self.thorax = 0
         self.clear()
 
     def length(self):
@@ -15,7 +17,4 @@ class Measurement:
     def clear(self):
         self.start = Point(0.0, 0.0)
         self.end = Point(0.0, 0.0)
-
-    def mm_conversion(self):
-        pass 
 
