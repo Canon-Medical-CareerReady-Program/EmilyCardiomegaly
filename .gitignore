@@ -19,7 +19,7 @@ environment/
 *.nrrd
 
 # Data
-Data/Cache
+#Data/Cache
 Cardiomegaly Data.csv
 Data/results.sqlite
 sm_app.sqlite
