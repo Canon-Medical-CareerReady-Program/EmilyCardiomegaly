@@ -1,0 +1,12 @@
+install vsc
+sign into git
+download ZIP
+extract ZIP
+open vsc
+go to files, open EmilyCardiomegaly
+open run_app.bat and go to run and debug
+when it asks to install extention, say yes and install Batch Runner
+then run run_app.bat, if python is not installed, it will tell you to click and download it for you. make sure you have selected the items it says when you run the batch file.
+once python is done installing, restart your computer
+then run run_app.bat again, this will then install the the addons needed for the code to run.
+your code is now working!! run main.py to see the program whoop
