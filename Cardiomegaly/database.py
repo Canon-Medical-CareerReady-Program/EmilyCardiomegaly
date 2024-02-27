@@ -10,8 +10,6 @@ class Database:
         except Error as e:
             print(f"The error '{e}' occurred")
 
-    #connection = create_connection("sm_app.sqlite")
-
     def execute_query(self, query):
         cursor = self.connection.cursor()
         try:

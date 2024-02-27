@@ -16,7 +16,7 @@ class DrawingApp:
         self.root.title("Cardiomegaly Detector")
         self.root.minsize(width=600, height=500)
 
-        #if data folder doesnt exist what happens??? create a folder to fix 
+        #if data folder does'nt exist what happens??? create a folder to fix 
         self.database = Database("Data/results.sqlite")
         Measurement.initialise_database(self.database)
     
@@ -193,7 +193,7 @@ class DrawingApp:
         # there is values stored for both the heart and thorax line length e.g. when they dont equal 0
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.calculate_ratio_and_percentage()
-    #
+    
     def button_release(self, event):
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
