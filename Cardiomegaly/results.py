@@ -1,5 +1,6 @@
 from measurement import Measurement
 from tkinter import filedialog
+from database import Database
 
 class Result:
 
@@ -8,6 +9,10 @@ class Result:
         self.thorax = Measurement("Thorax")
         self.image_name = ""  
         self.short_image_name = ""
+        self.heart_x = 0
+        self.heart_y = 0
+        self.thorax_x = 0
+        self.thorax_y = 0
         self.pixel_spacing = [1.0, 1.0]   
         self.patient_ID = []
         self.patient_gender = []
