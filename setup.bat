@@ -31,5 +31,6 @@ if /I "%VIRTUAL_ENV%" neq "%cd%\environment" (
 
 :: Install python packages
 python.exe -m pip install -r requirements.txt
+pip install pillow
 
 popd
