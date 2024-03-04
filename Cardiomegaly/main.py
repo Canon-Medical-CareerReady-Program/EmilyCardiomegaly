@@ -99,7 +99,7 @@ class DrawingApp:
         button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         button_frame.pack(side=tk.TOP,fill=tk.BOTH)
         
-        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_database, background="#C1E3ED", font=("Arial", 10))
+        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_spreadsheet, background="#C1E3ED", font=("Arial", 10))
         self.database_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
 
         self.previous_image_button = tk.Button(button_frame, text="Previous Image", command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
@@ -178,7 +178,7 @@ class DrawingApp:
     def start_drawing(self, event):
         self.current_measurement.start = Point(event.x, event.y) / self.calculate_scale_factor()
     
-    #similar to the start_drawing function, this saves the coordinate of when the button is relased, so the end of the line
+    #similar to the start_drawing function, this saves the coordinate of when the button is released, so the end of the line
     #it also saves the current body_part (either the heart or the thorax) and saves it as the measurement
     #and calls the calculate_ratio_and_percentage function if there is now measurements stored for both the heart and thorax length
         
@@ -193,18 +193,20 @@ class DrawingApp:
         # there is values stored for both the heart and thorax line length e.g. when they dont equal 0
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.calculate_ratio_and_percentage()
-    
+
+    #when the button is released, the current measurement sets the results of the heart and thorax.
     def button_release(self, event):
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
 
+    #if the variable currently selected is heart when set the measurement that is currently being taken to the heart and if not to thorax
     def select_variable(self, variable):
         if variable == "Heart Line":
             self.current_measurement = self.current_result.heart
         else:
             self.current_measurement = self.current_result.thorax
         self.update_button_colors()
-       
+
     def calculate_ratio_and_percentage(self):
         self.update_results()
 
@@ -225,10 +227,13 @@ class DrawingApp:
         self.Gender_label.config(text="Gender:")
         self.Age_label.config(text="Age:")
 
+    #delete all measurements and results stored 
     def clear_measurements(self):
         self.current_result.heart.clear()
         self.current_result.thorax.clear()
-
+    
+    #check the image index when the image switches 
+    #change the image index 
     def next_image(self):
         if self.current_image_index < len(self.image_paths_del) - 1:
             self.current_image_index += 1
@@ -236,7 +241,7 @@ class DrawingApp:
             self.update_results()
 
         self.update_navigation_buttons()
-
+    
     def previous_image(self):
         if self.current_image_index > 0:
             self.current_image_index -= 1
@@ -245,13 +250,16 @@ class DrawingApp:
 
         self.update_navigation_buttons()
 
-    def save_to_database(self):
+    #saving the new results and measurements for a spreadsheet to view 
+    def save_to_spreadsheet(self):
         with open("Cardiomegaly Data.csv", mode="a", newline='') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
             for result in self.all_results:
                 writer.writerow([result.image_name, self.heart_length_mm, self.thorax_length_mm, result.ratio(), result.percentage(), result.symptoms()])
     
+    #when there is no more images opened by the users this function disables the 
+    #buttons making the user aware that that is all the images or patients that they have opened
     def update_button_colors(self):
         # Update button colors based on the selected option
         for button_name, button_color in self.button_colors.items():
@@ -260,13 +268,14 @@ class DrawingApp:
                 self.style.configure(style_name, background=button_color, relief="sunken")
             else:
                 self.style.configure(style_name, background=button_color, relief="raised")
-
+    #resizes the canvas when the app is resized
+    #calls on functions that will change the image and lines to update with this screen size change
     def canvas_resized(self, event):
         print(f"{self.canvas.winfo_width()}, {self.canvas.winfo_height()}")
         self.update_image()
         self.update_results()
 
-
+    #updates the image size to match to be scaled with the size of the screen
     def update_image(self):
         if self.original_image !=None:
             self.canvas_width = self.canvas.winfo_width()
@@ -286,7 +295,7 @@ class DrawingApp:
             self.tkimage= ImageTk.PhotoImage(image=resized_image)
             print(resized_image)
             self.canvas.create_image(0, 0, anchor="nw", image=self.tkimage)
-
+    #calculates the scale factor for the images that scales the images to their correct sizes 
     def calculate_scale_factor(self):
         if self.original_image !=None:
             self.canvas_width = self.canvas.winfo_width()
@@ -301,6 +310,7 @@ class DrawingApp:
             return scale_factor
         return 1.0  # Default scale factor if there is no image
     
+    #loading all the data from the large csv file into the code and assigning each bit of info a variable
     def load_image_metadata(self):        
         with open("Data\BBox_List_2017.csv", newline='') as csvfile:
             reader = csv.DictReader(csvfile)
@@ -314,7 +324,7 @@ class DrawingApp:
                 self.gender = str(row["Patient Gender"])
                 self.age = int(row["Patient Age"])
                 
-                # Ok, now we want to find which of the images we selected in the File open dialog (all_results) has a image name that matches the image name in the row
+                #find which of the images selected in the File open dialog (all_results) has a image name that matches the image name in the row
                 for result in self.all_results:
                     if image_name == result.short_image_name:
                         result.pixel_spacing[0] = self.pixel_spacing_x
@@ -331,7 +341,10 @@ class DrawingApp:
         if len(self.patient_ID) > 0:
             self.current_patient_id = sorted(self.patient_ID.keys())[0]
             self.update_current_patient_images()
-
+    
+    #update what image is on the screen when a button is pressed of one is opened
+    #this function also updates the measurements by loading the ones that have already been made 
+    #or if there are none found, setting them to 0
     def update_current_patient_images(self):
         self.current_patient_images = self.patient_ID.get(self.current_patient_id, [])
         if len(self.current_patient_images) > 0:
@@ -347,6 +360,8 @@ class DrawingApp:
         self.update_results()
         self.update_navigation_buttons()
 
+    #the button that moves to the next patients images that have been opened by the user
+    #and calls the necessary functions to update the measurements and data displayed
     def next_patient(self):
         if self.current_patient_id is not None:
             patient_ids = sorted(self.patient_ID.keys())
@@ -356,6 +371,8 @@ class DrawingApp:
                 self.update_current_patient_images()
                 self.update_results()
 
+    #the button that moves to the previous patients images that have been opened by the user
+    #and calls the necessary functions to update the measurements and data displayed
     def previous_patient(self):
         if self.current_patient_id is not None:
             patient_ids = sorted(self.patient_ID.keys())
@@ -364,7 +381,8 @@ class DrawingApp:
                 self.current_patient_id = patient_ids[prev_index]
                 self.update_current_patient_images()
                 self.update_results()
-
+    
+    #updates all the buttons so that when there are no other images or patients opened by the user the buttons are diabled
     def update_navigation_buttons(self):
         if self.current_patient_id is not None:
             patient_ids = sorted(self.patient_ID.keys())
@@ -374,7 +392,10 @@ class DrawingApp:
         if self.current_patient_images is not None:
             self.next_image_button.config(state="normal" if self.current_image_index < len(self.current_patient_images) - 1 else "disabled")
             self.previous_image_button.config(state="normal" if self.current_image_index > 0 else "disabled")
-
+    
+    #updating the results saved for the heart and thorax
+    #then checking that both heart and thorax have measurements saved and displaying the measurements 
+    #found in labels that call on the functions to calculate the ratio and percentage, etc.
     def update_results(self):
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
@@ -387,12 +408,17 @@ class DrawingApp:
                 self.Diagnosis_label.config(text="indicates an enlarged heart.")
             else:
                 self.Diagnosis_label.config(text="indicates a normal heart size.")
-
+        #if both the heart and thorax do not have measurements saved, it will not update what is displayed
+        #as the calculations will not be carried out to avoid errors (divisionn by 0)
         else:
             self.ratio_label.config(text="Cardiothoracic Ratio:")
             self.percentage_label.config(text="Percentage of Ratio:")
             self.Diagnosis_label.config(text="Symptomatic:")
         
+    #updating the body parts to scale it to the real size by using the pixel spacing provided in the data csv file
+    #IMPORTANT this function does not preform properly as there was found to be an unforeseen error in the
+    #csv file which means that all the pixel spacings given were incorrect, so the data displayed is
+    #correct for the pixel spacing that was provided but not for real life
     def update_body_part(self, measurement:Measurement): 
         self.scale_factor = self.calculate_scale_factor()
        
@@ -405,10 +431,12 @@ class DrawingApp:
         self.thorax_length_mm = self.current_result.thorax.length() * self.current_result.pixel_spacing[0]
 
         # Draw the straight line
+        #adding colour to the lines
         line_color = "purple" if measurement == self.current_result.heart else "blue"
         self.canvas.delete(measurement.body_part)  # Delete previous line
         self.canvas.create_line(x0, y0, x1, y1, fill=line_color, width=2, tags=measurement.body_part)
-
+        
+        #displaying the measurements found for the heart and thorax line lengths
         self.heart_line_label.config(text="Heart Line Length: {:.2f} mm".format(self.heart_length_mm))
         self.thorax_line_label.config(text="Thorax Line Length: {:.2f} mm".format(self.thorax_length_mm))
 
