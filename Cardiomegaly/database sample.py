@@ -1,29 +1,14 @@
 import sqlite3
+import os
 from sqlite3 import Error
+from database import Database
 
-def create_connection(path):
-    connection = None
-    try:
-        connection = sqlite3.connect(path)
-        print("Connection to SQLite DB successful")
-    except Error as e:
-        print(f"The error '{e}' occurred")
+os.remove("sm_app.sqlite")
 
-    return connection
+database = Database("sm_app.sqlite")
 
-connection = create_connection("sm_app.sqlite")
-
-def execute_query(connection, query):
-    cursor = connection.cursor()
-    try:
-        cursor.execute(query)
-        connection.commit()
-        print("Query executed successfully")
-    except Error as e:
-        print(f"The error '{e}' occurred")
-
-create_users_table = """
-CREATE TABLE IF NOT EXISTS image_measurements (
+create_results_table_sql = """
+CREATE TABLE IF NOT EXISTS results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   filename TEXT NOT NULL,
   thorax_x INTEGER,
@@ -32,52 +17,44 @@ CREATE TABLE IF NOT EXISTS image_measurements (
   heart_y INTEGER
 );
 """
-execute_query(connection, create_users_table)
+database.execute_query(create_results_table_sql)
 
-create_users = """
+## What is this doing?
+create_results_sql = """
 INSERT INTO
-  image_measurements (filename, thorax_x, thorax_y, heart_x, heart_y)
+  results (filename, thorax_x, thorax_y, heart_x, heart_y)
 VALUES
   ('img000001', 100, 100, 500, 100);
 """
+database.execute_query(create_results_sql)
 
-execute_query(connection, create_users)
 
-def execute_read_query(connection, query):
-    cursor = connection.cursor()
-    result = None
-    try:
-        cursor.execute(query)
-        result = cursor.fetchall()
-        return result
-    except Error as e:
-        print(f"The error '{e}' occurred")
-
-select_users = "SELECT * from image_measurements"
-users = execute_read_query(connection, select_users)
-
-for user in users:
+## What is this doing?
+select_results_sql = "SELECT * from results"
+results = database.execute_read_query(select_results_sql)
+for user in results:
     print(user)
+first_image = results[0][1]
+print(f"First image name is: {first_image}")
 
-update_post_description = """
+## What is this doing?
+update_result_sql = f"""
 UPDATE
-  image_measurements
+  results
 SET
-  thorax_x = 100,
-  thorax_y = 300,
-  heart_x = 500,
-  heart_y = 300
+  thorax_x = 100, thorax_y = 300, heart_x = 500, heart_y = 300
 WHERE
-  filename = 'img000001'
+  filename = '{first_image}'
 """
+database.execute_query(update_result_sql)
 
-execute_query(connection, update_post_description)
+## What is this doing?
+updated_results = database.execute_read_query(select_results_sql)
+for result in updated_results:
+    print(result)
 
-post_description = execute_read_query(connection, update_post_description)
-
-for description in post_description:
-    print(description)
-
+## What is this doing?
+print(f" thorax_y for {first_image} was previously {results[0][3]} and now is {updated_results[0][3]}")
 
 
 
