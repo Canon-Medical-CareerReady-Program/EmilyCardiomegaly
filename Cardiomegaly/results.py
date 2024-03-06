@@ -41,14 +41,31 @@ class Result:
             thorax_end_y INTEGER
         );
         """
+        database.execute_query(create_users_table)
         
     @staticmethod
-    def from_database(database:Database):
-        all_results : List[Result] = []
-        select_users = "SELECT * from image_measurements"
-        Measurement = select_users
-        print("select all measurements and create array")
-        return all_results
+    def load_from_database(database:Database):
+        select_measurements = """
+        SELECT * FROM image_measurements;
+        """
+        results = database.execute_read_query(select_measurements)
+        measurements_list = []
+
+        for row in results:
+            result = Result()
+            result.image_name = row[1]
+            result.heart.start.x = row[2]
+            result.heart.start.y = row[3]
+            result.heart.end.x = row[4]
+            result.heart.end.y = row[5]
+            result.thorax.start.x = row[6]
+            result.thorax.start.y = row[7]
+            result.thorax.end.x = row[8]
+            result.thorax.end.y = row[9]
+
+            measurements_list.append(result)
+
+        return measurements_list
     
     def save(self, database:Database, all_results):
         print("save the current measurements to database, if it does'nt exist insert and if it does update")

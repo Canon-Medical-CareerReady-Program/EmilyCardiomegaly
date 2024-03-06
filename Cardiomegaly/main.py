@@ -8,6 +8,8 @@ from database import Database
 import csv
 from typing import List
 from tkinter import ttk
+import os
+import atexit
 
 #main class. this program uses object orientated programming as it have 4 classes; DrawingApp, Measurement, Result, and Point. 
 class DrawingApp:
@@ -51,7 +53,12 @@ class DrawingApp:
         self.patient_images = {}
         self.patient_gender = {}
         self.patient_age = {}
-        self.image_name = [] #an array of the names that the images are stored as in the csv file       
+        self.image_name = [] #an array of the names that the images are stored as in the csv file    
+
+        self.result = []   
+
+        # Register the function to delete the CSV file on program exit
+        atexit.register(self.delete_csv_file_on_exit)
 
 
         # Create a separate frame for labels and data with a set width
@@ -159,7 +166,8 @@ class DrawingApp:
                 result.short_image_name = file_path.split('/')[-1]
                 self.all_results.append(result)
             self.load_image_metadata()
-            self.load_current_image()  # Load the current image
+            #load the current image
+            self.load_current_image()
 
     #load and display the image and the data found to go with it in the csv and display them with the corresponding labels on the screen
     def load_current_image(self):
@@ -249,15 +257,56 @@ class DrawingApp:
             self.update_results()
 
         self.update_navigation_buttons()
+    
+    def delete_csv_file_on_exit(self):
+        csv_file_path = "Cardiomegaly Data.csv"
+        if os.path.exists(csv_file_path):
+            os.remove(csv_file_path)
 
-    #saving the new results and measurements for a spreadsheet to view 
+    def bubble_sort(self, data):
+        n = len(data)
+        for i in range(n - 1):
+            for j in range(0, n - i - 1):
+                if data[j].percentage() < data[j + 1].percentage():
+                    data[j], data[j + 1] = data[j + 1], data[j]
+
     def save_to_spreadsheet(self):
+        file_exists = os.path.exists("Cardiomegaly Data.csv")
+
         with open("Cardiomegaly Data.csv", mode="a", newline='') as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
-            for result in self.all_results:
-                writer.writerow([result.image_name, self.heart_length_mm, self.thorax_length_mm, result.ratio(), result.percentage(), result.symptoms()])
+
+            if not file_exists:
+                writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
+
+            # Filter out existing rows for the current image name
+            filtered_results = [result for result in self.all_results if result.image_name not in self.get_existing_image_names()]
+
+            # Apply bubble sort to the filtered results by percentage in descending order
+            self.bubble_sort(filtered_results)
+
+            # Write the sorted results to the CSV file
+            for result in filtered_results:
+                writer.writerow([
+                    result.image_name,
+                    result.heart.length() * result.pixel_spacing[0],
+                    result.thorax.length() * result.pixel_spacing[0],
+                    result.ratio(),
+                    result.percentage(),
+                    result.symptoms()
+                ])
+
+    def get_existing_image_names(self):
+        existing_image_names = set()
     
+        with open("Cardiomegaly Data.csv", newline='') as csvfile:
+            reader = csv.reader(csvfile)
+            next(reader)  # Skip header row
+            for row in reader:
+                existing_image_names.add(row[0])
+
+        return existing_image_names
+
     #when there is no more images opened by the users this function disables the 
     #buttons making the user aware that that is all the images or patients that they have opened
     def update_button_colors(self):
@@ -409,7 +458,7 @@ class DrawingApp:
             else:
                 self.Diagnosis_label.config(text="indicates a normal heart size.")
         #if both the heart and thorax do not have measurements saved, it will not update what is displayed
-        #as the calculations will not be carried out to avoid errors (divisionn by 0)
+        #as the calculations will not be carried out to avoid errors (division by 0)
         else:
             self.ratio_label.config(text="Cardiothoracic Ratio:")
             self.percentage_label.config(text="Percentage of Ratio:")
@@ -421,6 +470,7 @@ class DrawingApp:
     #correct for the pixel spacing that was provided but not for real life
     def update_body_part(self, measurement:Measurement): 
         self.scale_factor = self.calculate_scale_factor()
+    
        
         x0 = measurement.start.x * self.scale_factor
         y0 = measurement.start.y * self.scale_factor
