@@ -45,7 +45,7 @@ class DrawingApp:
 
         #saving all the information found in result to the array all_results
         #List does.....
-        self.all_results : List[Result] = Result.from_database(self.database)
+        self.all_results : List[Result] = Result.load_from_database(self.database)
 
         # Add a dictionary to store the information for each image
         self.pixel_spacing = {} #pixel spacing is used for the resizing of images for different screen sizes
