@@ -45,7 +45,7 @@ class Result:
         
     @staticmethod
     def load_from_database(database:Database):
-        select_measurements = """
+        select_measurements = f"""
         SELECT * FROM image_measurements;
         """
         results = database.execute_read_query(select_measurements)
@@ -67,30 +67,39 @@ class Result:
 
         return measurements_list
     
-    def save(self, database:Database, all_results):
-        print("save the current measurements to database, if it does'nt exist insert and if it does update")
-        
-        if self.image_name == database:
-            sql = f"""
+    def save(self, database:Database):
+        #print("save the current measurements to database, if it does'nt exist insert and if it does update")
+
+        select_measurements = f"""
+        SELECT * FROM image_measurements WHERE image_name = '{self.image_name}';
+        """
+        results = database.execute_read_query(select_measurements)
+
+        if len(results) > 0:
+            update_results = f"""
             UPDATE
               image_measurements
             SET
-              heart_start_x = {all_results['self.heart.start.x']},
-              heart_start_y = {all_results['self.heart.start.y']},
-              heart_end_x = {all_results['self.heart.end.x']},
-              heart_end_y = {all_results['self.heart.end.y']},
-              thorax_start_x = {all_results['self.thorax.start.x']},
-              thorax_start_y = {all_results['self.thorax.start.y']},
-              thorax_end_x = {all_results['self.thorax.end.x']},
-              thorax_end_y = {all_results['self.thorax.end.y']}
+              heart_start_x = {self.heart.start.x},
+              heart_start_y = {self.heart.start.y},
+              heart_end_x = {self.heart.end.x},
+              heart_end_y = {self.heart.end.y},
+              thorax_start_x = {self.thorax.start.x},
+              thorax_start_y = {self.thorax.start.y},
+              thorax_end_x = {self.thorax.end.x},
+              thorax_end_y = {self.thorax.end.y}
             WHERE
-              image_name = '{all_results['self.image_name']}'
+              image_name = '{self.image_name}'
                 """
+            database.execute_query(update_results)
+
         else:
-            create_users = """
+            create_results = f"""
             INSERT INTO
-              image_measurements(image_name, heart_x, heart_y thorax_x, thorax_y)
+              image_measurements(image_name, heart_start_x, heart_start_y, heart_end_x, heart_end_y, thorax_start_x, thorax_start_y, thorax_end_x, thorax_end_y)
             VALUES
-              (self.image_name, self.heart.start.x, self.heart.start.y, self.heart.end.x, self.heart.end.y, self.thorax.start.x, self.thorax.start.y, self.thorax.end.x, self.thorax.end.y);
+              ('{self.image_name}', {self.heart.start.x}, {self.heart.start.y}, {self.heart.end.x}, {self.heart.end.y}, {self.thorax.start.x}, {self.thorax.start.y}, {self.thorax.end.x}, {self.thorax.end.y});
             """
+
+            database.execute_query(create_results)
 

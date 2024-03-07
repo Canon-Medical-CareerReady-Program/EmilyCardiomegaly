@@ -42,10 +42,9 @@ class DrawingApp:
         self.current_measurement:Measurement = None
         self.original_image :Image= None
 
-
         #saving all the information found in result to the array all_results
         #List does.....
-        self.all_results : List[Result] = Result.load_from_database(self.database)
+        self.all_results : List[Result] = []
 
         # Add a dictionary to store the information for each image
         self.pixel_spacing = {} #pixel spacing is used for the resizing of images for different screen sizes
@@ -163,6 +162,7 @@ class DrawingApp:
             for file_path in file_paths:
                 result = Result()
                 result.image_name = file_path 
+                result.load_from_database(self.database)
                 result.short_image_name = file_path.split('/')[-1]
                 self.all_results.append(result)
             self.load_image_metadata()
@@ -452,6 +452,8 @@ class DrawingApp:
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio()))
             self.percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
+            
+            self.current_result.save(self.database)
 
             if self.current_result.symptoms():
                 self.Diagnosis_label.config(text="indicates an enlarged heart.")

@@ -15,7 +15,7 @@ class Database:
         try:
             cursor.execute(query)
             self.connection.commit()
-            print("Query executed successfully")
+            #print("Query executed successfully")
         except Error as e:
             print(f"The error '{e}' occurred")
 
@@ -27,4 +27,4 @@ class Database:
             result = cursor.fetchall()
             return result
         except Error as e:
-            print(f"The error '{e}' occurred")
+            print(f"The error '{e}' occurred")        
