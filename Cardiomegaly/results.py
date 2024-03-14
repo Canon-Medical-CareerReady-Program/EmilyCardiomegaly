@@ -96,9 +96,26 @@ class Result:
         else:
             create_results = f"""
             INSERT INTO
-              image_measurements(image_name, heart_start_x, heart_start_y, heart_end_x, heart_end_y, thorax_start_x, thorax_start_y, thorax_end_x, thorax_end_y)
+              image_measurements(
+              image_name, 
+              heart_start_x, 
+              heart_start_y, 
+              heart_end_x, 
+              heart_end_y, 
+              thorax_start_x, 
+              thorax_start_y, 
+              thorax_end_x, 
+              thorax_end_y)
             VALUES
-              ('{self.image_name}', {self.heart.start.x}, {self.heart.start.y}, {self.heart.end.x}, {self.heart.end.y}, {self.thorax.start.x}, {self.thorax.start.y}, {self.thorax.end.x}, {self.thorax.end.y});
+              ('{self.image_name}', 
+              {self.heart.start.x}, 
+              {self.heart.start.y}, 
+              {self.heart.end.x}, 
+              {self.heart.end.y}, 
+              {self.thorax.start.x}, 
+              {self.thorax.start.y}, 
+              {self.thorax.end.x}, 
+              {self.thorax.end.y});
             """
 
             database.execute_query(create_results)

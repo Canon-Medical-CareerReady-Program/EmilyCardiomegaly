@@ -105,10 +105,13 @@ class DrawingApp:
         button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         button_frame.pack(side=tk.TOP,fill=tk.BOTH)
         
-        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", command=self.save_to_spreadsheet, background="#C1E3ED", font=("Arial", 10))
+        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", 
+                                         command=self.save_to_spreadsheet, 
+                                         background="#C1E3ED", font=("Arial", 10))
         self.database_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
 
-        self.previous_image_button = tk.Button(button_frame, text="Previous Image", command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
+        self.previous_image_button = tk.Button(button_frame, text="Previous Image", 
+                                               command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
         self.previous_image_button.pack(side="left", padx=padx, pady=10, anchor="nw")
 
         self.next_image_button = tk.Button(button_frame, text="Next Image", command=self.next_image, background="#C1E3ED", font=("Arial", 10))
@@ -131,10 +134,12 @@ class DrawingApp:
         other_button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         other_button_frame.pack(side=tk.TOP,fill=tk.BOTH)
                 
-        self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", command=self.previous_patient, background="#C1E3ED", font=("Arial", 10))
+        self.previous_patient_button = tk.Button(other_button_frame, text="Previous Patient", command=self.previous_patient, 
+                                                 background="#C1E3ED", font=("Arial", 10))
         self.previous_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
-        self.next_patient_button = tk.Button(other_button_frame, text="Next Patient", command=self.next_patient, background="#C1E3ED", font=("Arial", 10))
+        self.next_patient_button = tk.Button(other_button_frame, text="Next Patient", command=self.next_patient,
+                                              background="#C1E3ED", font=("Arial", 10))
         self.next_patient_button.pack(side="left", padx=padx, pady=10, anchor="w")
 
         self.style = ttk.Style()
@@ -143,11 +148,15 @@ class DrawingApp:
     #creating a menu to appear at the top of the screen with commands calling on functions 
     #throughout the program when the corresponding button is pressed
     def create_menu(self):
-        menubar = tk.Menu(self.root, background="light blue", foreground="black")
-        menubar.add_command(label="Open Image", command=self.open_image, background="light blue", foreground="black", font=("Arial", 75))
-        menubar.add_command(label="Clear Lines", command=self.clear_canvas, background="light blue", foreground="black", font=("Arial", 75))
-        menubar.add_command(label="Heart Line", command=lambda: self.select_variable("Heart Line"), background="light blue", foreground="black", font=("Arial", 75))
-        menubar.add_command(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), background="light blue", foreground="black", font=("Arial", 75))
+        menubar = tk.Menu(self.root,foreground="black")
+        menubar.add_command(label="Open Image", command=self.open_image,
+                            foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Clear Lines", command=self.clear_canvas, 
+                            foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Heart Line", command=lambda: self.select_variable("Heart Line"), 
+                            foreground="black", font=("Arial", 75))
+        menubar.add_command(label="Thorax Line", command=lambda: self.select_variable("Thorax Line"), 
+                            foreground="black", font=("Arial", 75))
 
         self.root.config(menu=menubar)
     
@@ -281,7 +290,6 @@ class DrawingApp:
 
             # Filter out existing rows for the current image name
             filtered_results = [result for result in self.all_results if result.image_name not in self.get_existing_image_names()]
-
             # Apply bubble sort to the filtered results by percentage in descending order
             self.bubble_sort(filtered_results)
 
@@ -449,6 +457,7 @@ class DrawingApp:
         self.update_body_part(self.current_result.heart)
         self.update_body_part(self.current_result.thorax)
 
+        #input validation
         if self.current_result.heart.length() != 0 and self.current_result.thorax.length() != 0:
             self.ratio_label.config(text="Cardiothoracic Ratio: {:.2f}".format(self.current_result.ratio()))
             self.percentage_label.config(text="Percentage of Ratio: {:.0f}%".format(self.current_result.percentage()))
