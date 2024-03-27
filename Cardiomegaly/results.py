@@ -38,7 +38,8 @@ class Result:
             thorax_start_x INTEGER,
             thorax_start_y INTEGER,
             thorax_end_x INTEGER,
-            thorax_end_y INTEGER
+            thorax_end_y INTEGER,
+            percentage INTEGER
         );
         """
         database.execute_query(create_users_table)
@@ -46,12 +47,21 @@ class Result:
     @staticmethod
     def print_database(database:Database):
         print("Printing the database")
-        print("id, image_name, heart_start_x, heart_start_y, heart_end_x, heart_end_y, thorax_start_x, thorax_start_y, thorax_end_x, thorax_end_y")
+        print("id, image_name, heart_start_x, heart_start_y, heart_end_x, heart_end_y, thorax_start_x, thorax_start_y, thorax_end_x, thorax_end_y, percentage")
         select_measurements = f"""
         SELECT * FROM image_measurements;
         """
 
         results = database.execute_read_query(select_measurements)
+
+        n = len(results)
+        # Convert tuples to lists
+        results = [list(row) for row in results]
+        for i in range(n - 1):
+            for j in range(0, n - i - 1):
+                if results[j][10] < results[j + 1][10]:
+                    results[j][10], results[j + 1][10] = results[j + 1][10], results[j][10]
+
         for row in results:
             print(row)
     
@@ -97,7 +107,8 @@ class Result:
               thorax_start_x = {self.thorax.start.x},
               thorax_start_y = {self.thorax.start.y},
               thorax_end_x = {self.thorax.end.x},
-              thorax_end_y = {self.thorax.end.y}
+              thorax_end_y = {self.thorax.end.y},
+              percentage = {self.percentage()}
             WHERE
               image_name = '{self.image_name}'
                 """
@@ -115,7 +126,8 @@ class Result:
               thorax_start_x, 
               thorax_start_y, 
               thorax_end_x, 
-              thorax_end_y)
+              thorax_end_y,
+              percentage)
             VALUES
               ('{self.image_name}', 
               {self.heart.start.x}, 
@@ -125,7 +137,8 @@ class Result:
               {self.thorax.start.x}, 
               {self.thorax.start.y}, 
               {self.thorax.end.x}, 
-              {self.thorax.end.y});
+              {self.thorax.end.y},
+              {self.percentage()});
             """
 
             database.execute_query(create_results)

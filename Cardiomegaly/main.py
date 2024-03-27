@@ -219,6 +219,8 @@ class DrawingApp:
     def button_release(self, event):
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
+        #elif self.current_measurement == self.current_result.thorax:
+        #    self.current_measurement = self.current_result.heart
 
     #if the variable currently selected is heart when set the measurement that is currently being taken to the heart and if not to thorax
     def select_variable(self, variable):
