@@ -8,8 +8,7 @@ from database import Database
 import csv
 from typing import List
 from tkinter import ttk
-import os
-import atexit
+
 
 #main class. this program uses object orientated programming as it have 4 classes; DrawingApp, Measurement, Result, and Point. 
 class DrawingApp:
@@ -56,10 +55,6 @@ class DrawingApp:
 
         self.result = []   
 
-        # Register the function to delete the CSV file on program exit
-        atexit.register(self.delete_csv_file_on_exit)
-
-
         # Create a separate frame for labels and data with a set width
         label_frame = tk.Frame(root, background="#AAC9DD", width=400)
         label_frame.pack(side=tk.LEFT,fill=tk.BOTH)
@@ -104,11 +99,6 @@ class DrawingApp:
         #using tkinter to create a frame for the buttons in the program.
         button_frame = tk.Frame(label_frame, background="#AAC9DD", width=400)
         button_frame.pack(side=tk.TOP,fill=tk.BOTH)
-        
-        self.database_button = tk.Button(button_frame, text="Save to spreadsheet", 
-                                         command=self.save_to_spreadsheet, 
-                                         background="#C1E3ED", font=("Arial", 10))
-        self.database_button.pack(side="top", padx=padx, pady=pady, anchor="sw")
 
         self.previous_image_button = tk.Button(button_frame, text="Previous Image", 
                                                command=self.previous_image, background="#C1E3ED", font=("Arial", 10))
@@ -219,8 +209,8 @@ class DrawingApp:
     def button_release(self, event):
         if self.current_measurement == self.current_result.heart:
             self.current_measurement = self.current_result.thorax
-        #elif self.current_measurement == self.current_result.thorax:
-        #    self.current_measurement = self.current_result.heart
+        elif self.current_measurement == self.current_result.thorax:
+            self.current_measurement = self.current_result.heart
 
     #if the variable currently selected is heart when set the measurement that is currently being taken to the heart and if not to thorax
     def select_variable(self, variable):
@@ -273,54 +263,6 @@ class DrawingApp:
 
         self.update_navigation_buttons()
     
-    def delete_csv_file_on_exit(self):
-        csv_file_path = "Cardiomegaly Data.csv"
-        if os.path.exists(csv_file_path):
-            os.remove(csv_file_path)
-
-    def bubble_sort(self, data):
-        n = len(data)
-        for i in range(n - 1):
-            for j in range(0, n - i - 1):
-                if data[j].percentage() < data[j + 1].percentage():
-                    data[j], data[j + 1] = data[j + 1], data[j]
-
-    def save_to_spreadsheet(self):
-        file_exists = os.path.exists("Cardiomegaly Data.csv")
-
-        with open("Cardiomegaly Data.csv", mode="a", newline='') as csvfile:
-            writer = csv.writer(csvfile)
-
-            if not file_exists:
-                writer.writerow(["Image Name", "Heart Line", "Thorax Line", "Cardiothoracic Ratio", "Percentage", "Symptomatic"])
-
-            # Filter out existing rows for the current image name
-            filtered_results = [result for result in self.all_results if result.image_name not in self.get_existing_image_names()]
-            # Apply bubble sort to the filtered results by percentage in descending order
-            self.bubble_sort(filtered_results)
-
-            # Write the sorted results to the CSV file
-            for result in filtered_results:
-                writer.writerow([
-                    result.image_name,
-                    result.heart.length() * result.pixel_spacing[0],
-                    result.thorax.length() * result.pixel_spacing[0],
-                    result.ratio(),
-                    result.percentage(),
-                    result.symptoms()
-                ])
-
-    def get_existing_image_names(self):
-        existing_image_names = set()
-    
-        with open("Cardiomegaly Data.csv", newline='') as csvfile:
-            reader = csv.reader(csvfile)
-            next(reader)  # Skip header row
-            for row in reader:
-                existing_image_names.add(row[0])
-
-        return existing_image_names
-
     #when there is no more images opened by the users this function disables the 
     #buttons making the user aware that that is all the images or patients that they have opened
     def update_button_colors(self):
