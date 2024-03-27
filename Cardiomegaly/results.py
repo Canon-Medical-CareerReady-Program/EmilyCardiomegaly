@@ -42,28 +42,38 @@ class Result:
         );
         """
         database.execute_query(create_users_table)
-        
+    
     @staticmethod
-    def load_from_database(database:Database):
+    def print_database(database:Database):
+        print("Printing the database")
+        print("id, image_name, heart_start_x, heart_start_y, heart_end_x, heart_end_y, thorax_start_x, thorax_start_y, thorax_end_x, thorax_end_y")
         select_measurements = f"""
         SELECT * FROM image_measurements;
+        """
+
+        results = database.execute_read_query(select_measurements)
+        for row in results:
+            print(row)
+    
+    def load_from_database(self, database:Database):
+        select_measurements = f"""
+        SELECT * FROM image_measurements WHERE image_name = '{self.image_name}';
         """
         results = database.execute_read_query(select_measurements)
         measurements_list = []
 
         for row in results:
-            result = Result()
-            result.image_name = row[1]
-            result.heart.start.x = row[2]
-            result.heart.start.y = row[3]
-            result.heart.end.x = row[4]
-            result.heart.end.y = row[5]
-            result.thorax.start.x = row[6]
-            result.thorax.start.y = row[7]
-            result.thorax.end.x = row[8]
-            result.thorax.end.y = row[9]
+            self.image_name = row[1]
+            self.heart.start.x = row[2]
+            self.heart.start.y = row[3]
+            self.heart.end.x = row[4]
+            self.heart.end.y = row[5]
+            self.thorax.start.x = row[6]
+            self.thorax.start.y = row[7]
+            self.thorax.end.x = row[8]
+            self.thorax.end.y = row[9]
 
-            measurements_list.append(result)
+            measurements_list.append(self)
 
         return measurements_list
     
@@ -119,4 +129,3 @@ class Result:
             """
 
             database.execute_query(create_results)
-

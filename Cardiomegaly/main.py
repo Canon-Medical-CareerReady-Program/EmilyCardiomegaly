@@ -144,7 +144,10 @@ class DrawingApp:
 
         self.style = ttk.Style()
         self.style.configure("Selected.TButton", background=self.button_colors["Heart Line"])  # Set initial button color
-
+    
+    def __del__(self):
+        Result.print_database(self.database)
+        
     #creating a menu to appear at the top of the screen with commands calling on functions 
     #throughout the program when the corresponding button is pressed
     def create_menu(self):
@@ -177,6 +180,7 @@ class DrawingApp:
             self.load_image_metadata()
             #load the current image
             self.load_current_image()
+            self.update_results()
 
     #load and display the image and the data found to go with it in the csv and display them with the corresponding labels on the screen
     def load_current_image(self):
